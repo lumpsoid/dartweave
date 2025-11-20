@@ -39,8 +39,8 @@ class SyncCommand extends Command<int> {
       ..addMultiOption(
         'method',
         abbr: 'm',
-        help: 'Methods to sync (copyWith)',
-        allowed: ['copyWith'],
+        help: 'Methods to sync',
+        allowed: ['copyWith', 'toString'],
       )
       ..addMultiOption(
         'getter',
@@ -234,6 +234,37 @@ class SyncCommand extends Command<int> {
         final buffer = StringBuffer();
 
         switch (methodName) {
+          case 'toString':
+            // Find existing method
+            final methodVisitor = MethodDeclarationVisitor('toString');
+            classDecl.visitChildren(methodVisitor);
+
+            // Generate new method
+            buffer.clear();
+            generateToStringMethod(buffer, currentClassName, fields);
+
+            if (methodVisitor.methods.isNotEmpty) {
+              // Replace existing method
+              final existingMethod = methodVisitor.methods.first;
+              changes.add(
+                FileChange(
+                  start: existingMethod.offset,
+                  end: existingMethod.end,
+                  replacement: buffer.toString(),
+                ),
+              );
+            } else {
+              // Add new method at end of class
+              changes.add(
+                FileChange(
+                  start: classDecl.end - 1, // Position before closing bracket
+                  end: classDecl.end - 1,
+                  replacement: '\n\n$buffer\n',
+                ),
+              );
+            }
+            updatedMethodsForClass.add('toString');
+
           case 'copyWith':
             // Find existing method
             final methodVisitor = MethodDeclarationVisitor('copyWith');
