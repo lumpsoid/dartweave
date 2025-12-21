@@ -18,8 +18,12 @@ class MethodGenerator {
 
   void generateNewConstructor() {
     _buffer.writeln('const $_className({');
-    for (final Field(:name) in _fields) {
-      _buffer.writeln('    required this.$name,');
+    for (final Field(:name, :isSuper) in _fields) {
+      if (isSuper) {
+        _buffer.writeln('    required super.$name,');
+      } else {
+        _buffer.writeln('    required this.$name,');
+      }
     }
     _buffer.write('  });');
   }

@@ -5,6 +5,7 @@ class Field {
     required this.name,
     required this.type,
     this.nullable = false,
+    this.isSuper = false,
   });
 
   /// The name of the field
@@ -15,6 +16,8 @@ class Field {
 
   /// Whether the field is nullable
   final bool nullable;
+
+  final bool isSuper;
 
   /// The Dart code representation of this field's type
   String get typeRepresentation => nullable ? '$type?' : type;

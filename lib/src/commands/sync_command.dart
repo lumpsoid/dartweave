@@ -204,6 +204,8 @@ class GenCommand extends Command<int> {
 
     for (final classDecl in classVisitor.classes) {
       final currentClassName = classDecl.name.lexeme;
+      final superclassName =
+          classDecl.extendsClause?.superclass.toString() ?? '';
       // Skip if not the targeted class and not updating all
       if (!updateAllClasses && currentClassName != className) {
         continue;
@@ -233,6 +235,39 @@ class GenCommand extends Command<int> {
           );
         }
       }
+      // Extract fields from superclass
+      if (superclassName.isNotEmpty) {
+        final superclassVisitor = ClassDeclarationVisitor();
+        unit.visitChildren(superclassVisitor);
+        final superclassIndex = superclassVisitor.classes
+            .indexWhere((cls) => cls.name.lexeme == superclassName);
+
+        if (superclassIndex != -1) {
+          final superclassDecl = superclassVisitor.classes[superclassIndex];
+          final superclassFieldVisitor = FieldDeclarationVisitor();
+          superclassDecl.visitChildren(superclassFieldVisitor);
+
+          for (final fieldDecl in superclassFieldVisitor.fields) {
+            for (final variable in fieldDecl.fields.variables) {
+              final name = variable.name.lexeme;
+              final typeNode = fieldDecl.fields.type;
+              final typeStr = typeNode?.toString() ?? 'dynamic';
+              final isNullable = typeNode?.question != null;
+              fields.add(
+                Field(
+                  name: name,
+                  type: isNullable
+                      ? typeStr.substring(0, typeStr.length - 1)
+                      : typeStr,
+                  nullable: isNullable,
+                  isSuper: true,
+                ),
+              );
+            }
+          }
+        }
+      }
+
       if (fields.isEmpty) {
         errors.add('No fields found in class $currentClassName');
         continue;
