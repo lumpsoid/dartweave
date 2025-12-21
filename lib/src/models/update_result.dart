@@ -1,5 +1,12 @@
-/// Result of updating the copyWith method
 class UpdateResult {
+  /// Creates a new [UpdateResult] instance
+  const UpdateResult({
+    required this.content,
+    required this.updated,
+    this.updatedClasses = const [],
+    this.errors = const [],
+  });
+
   /// The updated file content
   final String content;
 
@@ -11,12 +18,4 @@ class UpdateResult {
 
   /// List of errors encountered during update
   final List<String> errors;
-
-  /// Creates a new [UpdateResult] instance
-  const UpdateResult({
-    required this.content,
-    required this.updated,
-    this.updatedClasses = const [],
-    this.errors = const [],
-  });
 }

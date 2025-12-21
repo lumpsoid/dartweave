@@ -40,7 +40,7 @@ class DartCreateClassCommandRunner extends CompletionCommandRunner<int> {
 
     // Add sub commands
     addCommand(CreateClassCommand(logger: _logger));
-    addCommand(SyncCommand(logger: _logger));
+    addCommand(GenCommand(logger: _logger));
     addCommand(UpdateCommand(logger: _logger, pubUpdater: _pubUpdater));
   }
 

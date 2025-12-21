@@ -4,6 +4,7 @@ import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:args/command_runner.dart';
+import 'package:dart_create_class/src/generators/generators.dart';
 import 'package:dart_create_class/src/models/models.dart' show Field;
 import 'package:dart_create_class/src/utils.dart';
 import 'package:mason_logger/mason_logger.dart';
@@ -12,9 +13,9 @@ import 'package:mason_logger/mason_logger.dart';
 /// `dart_create_class sync <class_name> [options]`
 /// A [Command] to sync methods of a Dart class
 /// {@endtemplate}
-class SyncCommand extends Command<int> {
+class GenCommand extends Command<int> {
   /// {@macro sync_command}
-  SyncCommand({
+  GenCommand({
     required Logger logger,
   }) : _logger = logger {
     argParser
@@ -51,10 +52,10 @@ class SyncCommand extends Command<int> {
   }
 
   @override
-  String get description => 'Sync methods of a Dart class with defiend fields';
+  String get description => 'Gen code of a Dart class with defiend fields';
 
   @override
-  String get name => 'sync';
+  String get name => 'gen';
 
   @override
   String get invocation => '${runner?.executableName} $name'
@@ -137,9 +138,7 @@ class SyncCommand extends Command<int> {
       } else {
         generatingProgress.complete('No changes were made to the file');
         if (result.errors.isNotEmpty) {
-          for (final error in result.errors) {
-            _logger.err(error);
-          }
+          result.errors.forEach(_logger.err);
           return ExitCode.software.code;
         }
         return ExitCode.success.code;
@@ -229,19 +228,80 @@ class SyncCommand extends Command<int> {
 
       final updatedMethodsForClass = <String>[];
 
+      final methodGen =
+          MethodGenerator(className: currentClassName, fields: fields);
       // Process each requested method
       for (final methodName in methodsToSync) {
-        final buffer = StringBuffer();
+        methodGen.clear();
 
         switch (methodName) {
+          case 'equality':
+            // Find existing getter
+            final getterVisitor = GetterDeclarationVisitor('==');
+            classDecl.visitChildren(getterVisitor);
+
+            // Generate new getter
+            methodGen.generateEqualityOperator();
+
+            if (getterVisitor.getters.isNotEmpty) {
+              // Replace existing getter
+              final existingGetter = getterVisitor.getters.first;
+              changes.add(
+                FileChange(
+                  start: existingGetter.offset,
+                  end: existingGetter.end,
+                  replacement: methodGen.toString(),
+                ),
+              );
+            } else {
+              // Add new getter at end of class
+              changes.add(
+                FileChange(
+                  start: classDecl.end - 1,
+                  end: classDecl.end - 1,
+                  replacement: '\n\n  $methodGen\n',
+                ),
+              );
+            }
+            updatedMethodsForClass.add('equality operator');
+
+          case 'hashCode':
+            // Find existing getter
+            final getterVisitor = GetterDeclarationVisitor('hashCode');
+            classDecl.visitChildren(getterVisitor);
+
+            // Generate new getter
+            methodGen.generateHashCode();
+
+            if (getterVisitor.getters.isNotEmpty) {
+              // Replace existing getter
+              final existingGetter = getterVisitor.getters.first;
+              changes.add(
+                FileChange(
+                  start: existingGetter.offset,
+                  end: existingGetter.end,
+                  replacement: methodGen.toString(),
+                ),
+              );
+            } else {
+              // Add new getter at end of class
+              changes.add(
+                FileChange(
+                  start: classDecl.end - 1,
+                  end: classDecl.end - 1,
+                  replacement: '\n\n$methodGen\n',
+                ),
+              );
+            }
+            updatedMethodsForClass.add('hashCode getter');
+
           case 'toString':
             // Find existing method
             final methodVisitor = MethodDeclarationVisitor('toString');
             classDecl.visitChildren(methodVisitor);
 
             // Generate new method
-            buffer.clear();
-            generateToStringMethod(buffer, currentClassName, fields);
+            methodGen.generateToStringMethod();
 
             if (methodVisitor.methods.isNotEmpty) {
               // Replace existing method
@@ -250,7 +310,7 @@ class SyncCommand extends Command<int> {
                 FileChange(
                   start: existingMethod.offset,
                   end: existingMethod.end,
-                  replacement: buffer.toString(),
+                  replacement: methodGen.generatedCode,
                 ),
               );
             } else {
@@ -259,7 +319,7 @@ class SyncCommand extends Command<int> {
                 FileChange(
                   start: classDecl.end - 1, // Position before closing bracket
                   end: classDecl.end - 1,
-                  replacement: '\n\n$buffer\n',
+                  replacement: '\n\n  $methodGen\n',
                 ),
               );
             }
@@ -271,8 +331,7 @@ class SyncCommand extends Command<int> {
             classDecl.visitChildren(methodVisitor);
 
             // Generate new method
-            buffer.clear();
-            generateCopyWithMethod(buffer, currentClassName, fields);
+            methodGen.generateCopyWithMethod();
 
             if (methodVisitor.methods.isNotEmpty) {
               // Replace existing method
@@ -281,7 +340,7 @@ class SyncCommand extends Command<int> {
                 FileChange(
                   start: existingMethod.offset,
                   end: existingMethod.end,
-                  replacement: buffer.toString(),
+                  replacement: methodGen.toString(),
                 ),
               );
             } else {
@@ -290,7 +349,7 @@ class SyncCommand extends Command<int> {
                 FileChange(
                   start: classDecl.end - 1, // Position before closing bracket
                   end: classDecl.end - 1,
-                  replacement: '\n\n$buffer\n',
+                  replacement: '\n\n$methodGen\n',
                 ),
               );
             }
@@ -302,8 +361,7 @@ class SyncCommand extends Command<int> {
             classDecl.visitChildren(constructorVisitor);
 
             // Generate new constructor
-            buffer.clear();
-            generateConstEmptyConstructor(buffer, currentClassName, fields);
+            methodGen.generateConstEmptyConstructor();
 
             if (constructorVisitor.constructors.isNotEmpty) {
               // Replace existing constructor
@@ -312,7 +370,7 @@ class SyncCommand extends Command<int> {
                 FileChange(
                   start: existingConstructor.offset,
                   end: existingConstructor.end,
-                  replacement: buffer.toString(),
+                  replacement: methodGen.toString(),
                 ),
               );
             } else {
@@ -321,7 +379,7 @@ class SyncCommand extends Command<int> {
                 FileChange(
                   start: classDecl.leftBracket.end,
                   end: classDecl.leftBracket.end,
-                  replacement: '\n\n$buffer\n',
+                  replacement: '\n\n$methodGen\n',
                 ),
               );
             }
@@ -333,8 +391,7 @@ class SyncCommand extends Command<int> {
             classDecl.visitChildren(getterVisitor);
 
             // Generate new getter
-            buffer.clear();
-            generateIsEmptyGetter(buffer, fields);
+            methodGen.generateIsEmptyGetter();
 
             if (getterVisitor.getters.isNotEmpty) {
               // Replace existing getter
@@ -343,7 +400,7 @@ class SyncCommand extends Command<int> {
                 FileChange(
                   start: existingGetter.offset,
                   end: existingGetter.end,
-                  replacement: buffer.toString(),
+                  replacement: methodGen.toString(),
                 ),
               );
             } else {
@@ -352,7 +409,7 @@ class SyncCommand extends Command<int> {
                 FileChange(
                   start: classDecl.end - 1,
                   end: classDecl.end - 1,
-                  replacement: '\n\n$buffer\n',
+                  replacement: '\n\n  $methodGen\n',
                 ),
               );
             }
@@ -364,8 +421,7 @@ class SyncCommand extends Command<int> {
             classDecl.visitChildren(constructorVisitor);
 
             // Generate new default constructor
-            buffer.clear();
-            generateDefaultConstructor(buffer, currentClassName, fields);
+            methodGen.generateNewConstructor();
 
             if (constructorVisitor.constructors.isNotEmpty) {
               // Replace existing constructor
@@ -374,7 +430,7 @@ class SyncCommand extends Command<int> {
                 FileChange(
                   start: existingConstructor.offset,
                   end: existingConstructor.end,
-                  replacement: buffer.toString(),
+                  replacement: methodGen.toString(),
                 ),
               );
             } else {
@@ -383,7 +439,7 @@ class SyncCommand extends Command<int> {
                 FileChange(
                   start: classDecl.leftBracket.end,
                   end: classDecl.leftBracket.end,
-                  replacement: '\n\n$buffer\n',
+                  replacement: '\n\n  $methodGen\n',
                 ),
               );
             }

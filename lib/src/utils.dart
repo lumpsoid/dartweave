@@ -126,9 +126,10 @@ extension NameConversion on String {
     return words[0].toLowerCase() +
         words
             .sublist(1)
-            .map((word) =>
-                word[0].toUpperCase() + word.substring(1).toLowerCase())
-            .join('');
+            .map(
+              (word) => word[0].toUpperCase() + word.substring(1).toLowerCase(),
+            )
+            .join();
   }
 
   /// Converts a string to PascalCase
@@ -142,7 +143,7 @@ extension NameConversion on String {
 
     return words
         .map((word) => word[0].toUpperCase() + word.substring(1).toLowerCase())
-        .join('');
+        .join();
   }
 
   /// Converts a string to kebab-case
