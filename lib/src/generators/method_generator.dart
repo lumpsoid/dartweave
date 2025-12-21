@@ -21,7 +21,7 @@ class MethodGenerator {
     for (final Field(:name) in _fields) {
       _buffer.writeln('    required this.$name,');
     }
-    _buffer.writeln('  });');
+    _buffer.write('  });');
   }
 
   void generateConstEmptyConstructor() {
@@ -53,7 +53,7 @@ class MethodGenerator {
     final fieldName = _fields[_fields.length - 1].name;
     _buffer
       ..writeln("        ' $fieldName: \$$fieldName)';")
-      ..writeln('  }');
+      ..write('  }');
   }
 
   void generateCopyWithMethod() {
