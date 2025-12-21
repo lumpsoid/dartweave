@@ -17,7 +17,7 @@ class MethodGenerator {
   void clear() => _buffer.clear();
 
   void generateNewConstructor() {
-    _buffer.writeln('  const $_className({');
+    _buffer.writeln('const $_className({');
     for (final Field(:name) in _fields) {
       _buffer.writeln('    required this.$name,');
     }
