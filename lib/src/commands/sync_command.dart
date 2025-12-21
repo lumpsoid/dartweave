@@ -48,6 +48,12 @@ class GenCommand extends Command<int> {
         abbr: 'g',
         help: 'Getters to sync (isEmpty)',
         allowed: ['isEmpty'],
+      )
+      ..addMultiOption(
+        'operator',
+        abbr: 'o',
+        help: 'Operators to sync',
+        allowed: ['equality'],
       );
   }
 
@@ -77,9 +83,15 @@ class GenCommand extends Command<int> {
     final constructors = argResults?['constructor'] as List<String>? ?? [];
     final methods = argResults?['method'] as List<String>? ?? [];
     final getters = argResults?['getter'] as List<String>? ?? [];
+    final operators = argResults?['operator'] as List<String>? ?? [];
 
     // Combine all requested methods
-    final methodsToSync = [...constructors, ...methods, ...getters];
+    final methodsToSync = [
+      ...constructors,
+      ...methods,
+      ...getters,
+      ...operators,
+    ];
 
     // If no methods specified, use defaults
     if (methodsToSync.isEmpty) {
@@ -237,15 +249,15 @@ class GenCommand extends Command<int> {
         switch (methodName) {
           case 'equality':
             // Find existing getter
-            final getterVisitor = GetterDeclarationVisitor('==');
+            final getterVisitor = OperatorDeclarationVisitor('==');
             classDecl.visitChildren(getterVisitor);
 
             // Generate new getter
             methodGen.generateEqualityOperator();
 
-            if (getterVisitor.getters.isNotEmpty) {
+            if (getterVisitor.operators.isNotEmpty) {
               // Replace existing getter
-              final existingGetter = getterVisitor.getters.first;
+              final existingGetter = getterVisitor.operators.first;
               changes.add(
                 FileChange(
                   start: existingGetter.offset,
@@ -516,6 +528,23 @@ class GetterDeclarationVisitor extends GeneralizingAstVisitor<void> {
   void visitMethodDeclaration(MethodDeclaration node) {
     if (node.isGetter && node.name.lexeme == getterName) {
       getters.add(node);
+    }
+    super.visitMethodDeclaration(node);
+  }
+}
+
+class OperatorDeclarationVisitor extends GeneralizingAstVisitor<void> {
+  OperatorDeclarationVisitor(this.operatorName);
+  final String operatorName;
+  final List<MethodDeclaration> operators = [];
+
+  @override
+  void visitMethodDeclaration(MethodDeclaration node) {
+    if (node.isOperator) {
+      print(node.name.lexeme);
+    }
+    if (node.isOperator && node.name.lexeme == operatorName) {
+      operators.add(node);
     }
     super.visitMethodDeclaration(node);
   }

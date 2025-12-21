@@ -87,14 +87,13 @@ class MethodGenerator {
 
   void generateEqualityOperator() {
     _buffer
-      ..writeln('  @override\n  bool operator ==(Object other) {')
+      ..writeln('@override\n  bool operator ==(Object other) {')
       ..writeln('    if (identical(this, other)) return true;')
-      ..writeln('    if (other.$_className != $_className) return false;')
       ..writeln('    return other is $_className &&');
     for (final Field(:name) in _fields) {
       _buffer.writeln('        other.$name == $name;');
     }
-    _buffer.writeln('  }');
+    _buffer.write('  }');
   }
 
   void generateHashCode() {
