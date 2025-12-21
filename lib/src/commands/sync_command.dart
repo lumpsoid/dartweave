@@ -319,7 +319,7 @@ class GenCommand extends Command<int> {
                 FileChange(
                   start: classDecl.end - 1, // Position before closing bracket
                   end: classDecl.end - 1,
-                  replacement: '\n\n  $methodGen\n',
+                  replacement: '\n  $methodGen\n',
                 ),
               );
             }
@@ -439,7 +439,7 @@ class GenCommand extends Command<int> {
                 FileChange(
                   start: classDecl.leftBracket.end,
                   end: classDecl.leftBracket.end,
-                  replacement: '\n\n  $methodGen\n',
+                  replacement: '\n  $methodGen\n',
                 ),
               );
             }
