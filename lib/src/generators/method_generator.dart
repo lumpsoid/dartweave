@@ -18,14 +18,43 @@ class MethodGenerator {
 
   void generateNewConstructor() {
     _buffer.writeln('const $_className({');
-    for (final Field(:name, :isSuper) in _fields) {
+
+    for (final Field(:name, :type, :isSuper) in _fields) {
       if (isSuper) {
         _buffer.writeln('    required super.$name,');
       } else {
-        _buffer.writeln('    required this.$name,');
+        // Check if the field name starts with underscore
+        if (name.startsWith('_')) {
+          // Remove the underscore for the parameter name
+          final paramName = name.substring(1);
+          _buffer.writeln('    required $type $paramName,');
+        } else {
+          _buffer.writeln('    required this.$name,');
+        }
       }
     }
-    _buffer.write('  });');
+
+    _buffer.write('  })');
+
+    // Add initializer list for fields with underscores
+    final privateFields = _fields
+        .where(
+          (f) => !f.isSuper && f.name.startsWith('_'),
+        )
+        .toList();
+    if (privateFields.isNotEmpty) {
+      _buffer.write(' : ');
+      for (var i = 0; i < privateFields.length; i++) {
+        final name = privateFields[i].name;
+        final paramName = name.substring(1);
+        _buffer.write('$name = $paramName');
+        if (i < privateFields.length - 1) {
+          _buffer.write(',\n        ');
+        }
+      }
+    }
+
+    _buffer.write(';');
   }
 
   void generateConstEmptyConstructor() {
