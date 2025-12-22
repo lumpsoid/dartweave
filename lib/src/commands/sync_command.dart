@@ -186,6 +186,10 @@ class GenCommand extends Command<int> {
     }
     final unit = parseResult.unit;
 
+    // Extract imports from the current file
+    final importVisitor = ImportVisitor();
+    unit.visitChildren(importVisitor);
+
     // Visit all classes in the file
     final classVisitor = ClassDeclarationVisitor();
     unit.visitChildren(classVisitor);
@@ -237,6 +241,12 @@ class GenCommand extends Command<int> {
       }
       // Extract fields from superclass
       if (superclassName.isNotEmpty) {
+        // Check the imports to determine the superclass file
+        final superclassImportIndex = importVisitor.imports.indexWhere(
+            (import) =>
+                import.uri.toString().contains(superclassName.toLowerCase()));
+
+
         final superclassVisitor = ClassDeclarationVisitor();
         unit.visitChildren(superclassVisitor);
         final superclassIndex = superclassVisitor.classes
@@ -519,6 +529,16 @@ class GenCommand extends Command<int> {
   }
 }
 
+class ImportVisitor extends GeneralizingAstVisitor<void> {
+  final List<ImportDirective> imports = [];
+
+  @override
+  void visitImportDirective(ImportDirective node) {
+    imports.add(node);
+    super.visitImportDirective(node);
+  }
+}
+
 /// Visitor to collect class declarations
 class ClassDeclarationVisitor extends GeneralizingAstVisitor<void> {
   final List<ClassDeclaration> classes = [];
@@ -575,9 +595,6 @@ class OperatorDeclarationVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    if (node.isOperator) {
-      print(node.name.lexeme);
-    }
     if (node.isOperator && node.name.lexeme == operatorName) {
       operators.add(node);
     }
