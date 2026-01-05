@@ -123,10 +123,13 @@ class MethodGenerator {
       ..writeln('@override\n  bool operator ==(Object other) {')
       ..writeln('    if (identical(this, other)) return true;')
       ..writeln('    return other is $_className &&');
-    for (final Field(:name) in _fields) {
-      _buffer.writeln('        other.$name == $name;');
+    for (var i = 0; i < _fields.length - 1; i++) {
+      _buffer
+          .writeln('        other.${_fields[i].name} == ${_fields[i].name} &&');
     }
-    _buffer.write('  }');
+    _buffer
+      ..writeln('        other.${_fields.last.name} == ${_fields.last.name};')
+      ..writeln('  }');
   }
 
   void generateHashCode() {
