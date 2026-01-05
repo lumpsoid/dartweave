@@ -41,7 +41,7 @@ class GenCommand extends Command<int> {
         'method',
         abbr: 'm',
         help: 'Methods to sync',
-        allowed: ['copyWith', 'toString'],
+        allowed: ['copyWith', 'toString', 'hashCode'],
       )
       ..addMultiOption(
         'getter',
@@ -245,7 +245,6 @@ class GenCommand extends Command<int> {
         final superclassImportIndex = importVisitor.imports.indexWhere(
             (import) =>
                 import.uri.toString().contains(superclassName.toLowerCase()));
-
 
         final superclassVisitor = ClassDeclarationVisitor();
         unit.visitChildren(superclassVisitor);
