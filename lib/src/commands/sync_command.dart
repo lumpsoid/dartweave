@@ -5,7 +5,9 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:args/command_runner.dart';
 import 'package:dart_create_class/src/generators/generators.dart';
-import 'package:dart_create_class/src/models/models.dart' show Field;
+import 'package:dart_create_class/src/mappers/mappers.dart';
+import 'package:dart_create_class/src/models/models.dart'
+    show ConstructorInfo, Field;
 import 'package:dart_create_class/src/utils.dart';
 import 'package:mason_logger/mason_logger.dart';
 
@@ -472,33 +474,31 @@ class GenCommand extends Command<int> {
             updatedMethodsForClass.add('isEmpty getter');
 
           case 'new':
-            // Find existing default constructor
-            final constructorVisitor = ConstructorDeclarationVisitor('');
-            classDecl.visitChildren(constructorVisitor);
+            final visitor = ConstructorDeclarationVisitor('');
+            classDecl.visitChildren(visitor);
 
-            // Generate new default constructor
-            methodGen.generateNewConstructor();
+            ConstructorInfo? info;
+            var startOffset = classDecl.leftBracket.end;
+            var endOffset = classDecl.leftBracket.end;
 
-            if (constructorVisitor.constructors.isNotEmpty) {
-              // Replace existing constructor
-              final existingConstructor = constructorVisitor.constructors.first;
-              changes.add(
-                FileChange(
-                  start: existingConstructor.offset,
-                  end: existingConstructor.end,
-                  replacement: methodGen.toString(),
-                ),
-              );
-            } else {
-              // Add new constructor after class header
-              changes.add(
-                FileChange(
-                  start: classDecl.leftBracket.end,
-                  end: classDecl.leftBracket.end,
-                  replacement: '\n  $methodGen\n',
-                ),
-              );
+            if (visitor.constructors.isNotEmpty) {
+              final existing = visitor.constructors.first;
+              info = parseConstructor(existing);
+              startOffset = existing.offset;
+              endOffset = existing.end;
             }
+
+            methodGen.generateConstructor(existing: info);
+
+            changes.add(
+              FileChange(
+                start: startOffset,
+                end: endOffset,
+                replacement:
+                    info == null ? '\n  $methodGen\n' : methodGen.toString(),
+              ),
+            );
+
             updatedMethodsForClass.add('default constructor');
         }
       }

@@ -16,45 +16,84 @@ class MethodGenerator {
 
   void clear() => _buffer.clear();
 
-  void generateNewConstructor() {
-    _buffer.writeln('const $_className({');
+  void generateConstructor({ConstructorInfo? existing}) {
+    final isConst = existing?.isConst ?? true;
+    _buffer
+      ..write(isConst ? 'const ' : '')
+      ..writeln('$_className({');
 
-    for (final Field(:name, :type, :isSuper) in _fields) {
-      if (isSuper) {
-        _buffer.writeln('    required super.$name,');
-      } else {
-        // Check if the field name starts with underscore
-        if (name.startsWith('_')) {
-          // Remove the underscore for the parameter name
-          final paramName = name.substring(1);
-          _buffer.writeln('    required $type $paramName,');
-        } else {
-          _buffer.writeln('    required this.$name,');
-        }
+    final privateInitializers = <Field>[];
+    final processedNames = <String>{};
+
+    // 1. Process existing parameters first to preserve order/defaults
+    if (existing != null) {
+      for (final param in existing.params) {
+        _writeExistingParam(param);
+        processedNames.add(param.name);
+      }
+    }
+
+    // 2. Add new fields that weren't in the existing constructor
+    for (final field in _fields) {
+      final paramName =
+          field.name.startsWith('_') ? field.name.substring(1) : field.name;
+
+      if (!processedNames.contains(paramName)) {
+        _writeField(field);
+        processedNames.add(paramName);
+      }
+
+      // Track if it needs an initializer (private field)
+      if (!field.isSuper && field.name.startsWith('_')) {
+        privateInitializers.add(field);
       }
     }
 
     _buffer.write('  })');
 
-    // Add initializer list for fields with underscores
-    final privateFields = _fields
-        .where(
-          (f) => !f.isSuper && f.name.startsWith('_'),
-        )
-        .toList();
-    if (privateFields.isNotEmpty) {
-      _buffer.write(' : ');
-      for (var i = 0; i < privateFields.length; i++) {
-        final name = privateFields[i].name;
-        final paramName = name.substring(1);
-        _buffer.write('$name = $paramName');
-        if (i < privateFields.length - 1) {
+    // 3. Initializer list (e.g., : _field = field)
+    if (privateInitializers.isNotEmpty) {
+      _buffer.write('\n      : ');
+      for (var i = 0; i < privateInitializers.length; i++) {
+        final f = privateInitializers[i];
+        final paramName = f.name.substring(1);
+        _buffer.write('${f.name} = $paramName');
+        if (i < privateInitializers.length - 1) {
           _buffer.write(',\n        ');
         }
       }
     }
-
     _buffer.write(';');
+  }
+
+  void _writeExistingParam(ConstructorParam param) {
+    final req = param.isRequired ? 'required ' : '';
+    final def = param.defaultValue != null ? ' = ${param.defaultValue}' : '';
+
+    String paramCode;
+    switch (param.type) {
+      case ParamType.thisField:
+        paramCode = 'this.${param.name}';
+      case ParamType.superField:
+        paramCode = 'super.${param.name}';
+      case ParamType.formal:
+        // Include type if it was explicitly defined in the original code
+        final typePrefix = param.typeName != null ? '${param.typeName} ' : '';
+        paramCode = '$typePrefix${param.name}';
+    }
+
+    _buffer.writeln('    $req$paramCode$def,');
+  }
+
+  void _writeField(Field field) {
+    if (field.isSuper) {
+      _buffer.writeln('    required super.${field.name},');
+    } else if (field.name.startsWith('_')) {
+      final paramName = field.name.substring(1);
+      _buffer.writeln('    required ${field.type} $paramName,');
+    } else {
+      _buffer.writeln('    required this.${field.name},');
+    }
   }
 
   void generateConstEmptyConstructor() {
