@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:dart_create_class/src/command_runner.dart';
+import 'package:dartweave/src/command_runner.dart';
 
 Future<void> main(List<String> args) async {
   await _flushThenExit(await DartCreateClassCommandRunner().run(args));

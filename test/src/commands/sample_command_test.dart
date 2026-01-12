@@ -1,4 +1,4 @@
-import 'package:dart_create_class/src/command_runner.dart';
+import 'package:dartweave/src/command_runner.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';

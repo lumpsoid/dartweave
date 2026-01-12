@@ -1,5 +1,5 @@
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:dart_create_class/src/models/models.dart';
+import 'package:dartweave/src/models/models.dart';
 
 ConstructorInfo parseConstructor(ConstructorDeclaration node) {
   final params = <ConstructorParam>[];

@@ -1,4 +1,4 @@
-import 'package:dart_create_class/src/models/models.dart';
+import 'package:dartweave/src/models/models.dart';
 
 /// Base interface for all code generators
 abstract class CodeTemplate {

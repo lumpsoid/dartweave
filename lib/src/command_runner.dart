@@ -1,24 +1,24 @@
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:cli_completion/cli_completion.dart';
-import 'package:dart_create_class/src/commands/commands.dart';
-import 'package:dart_create_class/src/version.dart';
+import 'package:dartweave/src/commands/commands.dart';
+import 'package:dartweave/src/version.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:pub_updater/pub_updater.dart';
 
-const executableName = 'dart_create_class';
-const packageName = 'dart_create_class';
+const executableName = 'dartweave';
+const packageName = 'dartweave';
 const description = 'Class creation CLI';
 
-/// {@template dart_create_class_command_runner}
+/// {@template dartweave_command_runner}
 /// A [CommandRunner] for the CLI.
 ///
 /// ```bash
-/// $ dart_create_class --version
+/// $ dartweave --version
 /// ```
 /// {@endtemplate}
 class DartCreateClassCommandRunner extends CompletionCommandRunner<int> {
-  /// {@macro dart_create_class_command_runner}
+  /// {@macro dartweave_command_runner}
   DartCreateClassCommandRunner({
     Logger? logger,
     PubUpdater? pubUpdater,

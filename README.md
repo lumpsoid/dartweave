@@ -1,4 +1,4 @@
-## dart_create_class
+## dartweave
 
 ![coverage][coverage_badge]
 [![style: very good analysis][very_good_analysis_badge]][very_good_analysis_link]
@@ -15,7 +15,7 @@ Class creation CLI.
 If the CLI application is available on [pub](https://pub.dev), activate globally via:
 
 ```sh
-dart pub global activate dart_create_class
+dart pub global activate dartweave
 ```
 
 Or locally via:
@@ -28,16 +28,16 @@ dart pub global activate --source=path <path to this package>
 
 ```sh
 # Sample command
-$ dart_create_class sample
+$ dartweave sample
 
 # Sample command option
-$ dart_create_class sample --cyan
+$ dartweave sample --cyan
 
 # Show CLI version
-$ dart_create_class --version
+$ dartweave --version
 
 # Show usage help
-$ dart_create_class --help
+$ dartweave --help
 ```
 
 ## Running Tests with coverage 🧪

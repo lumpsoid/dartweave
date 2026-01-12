@@ -2,8 +2,8 @@ import 'dart:io';
 
 import 'package:args/command_runner.dart';
 import 'package:cli_completion/cli_completion.dart';
-import 'package:dart_create_class/src/command_runner.dart';
-import 'package:dart_create_class/src/version.dart';
+import 'package:dartweave/src/command_runner.dart';
+import 'package:dartweave/src/version.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:pub_updater/pub_updater.dart';

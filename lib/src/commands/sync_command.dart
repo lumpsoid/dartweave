@@ -4,15 +4,15 @@ import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:args/command_runner.dart';
-import 'package:dart_create_class/src/generators/generators.dart';
-import 'package:dart_create_class/src/mappers/mappers.dart';
-import 'package:dart_create_class/src/models/models.dart'
+import 'package:dartweave/src/generators/generators.dart';
+import 'package:dartweave/src/mappers/mappers.dart';
+import 'package:dartweave/src/models/models.dart'
     show ConstructorInfo, Field;
-import 'package:dart_create_class/src/utils.dart';
+import 'package:dartweave/src/utils.dart';
 import 'package:mason_logger/mason_logger.dart';
 
 /// {@template sync_command}
-/// `dart_create_class sync <class_name> [options]`
+/// `dartweave sync <class_name> [options]`
 /// A [Command] to sync methods of a Dart class
 /// {@endtemplate}
 class GenCommand extends Command<int> {

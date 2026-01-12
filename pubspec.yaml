@@ -1,4 +1,4 @@
-name: dart_create_class
+name: dartweave
 description: Class creation CLI
 version: 0.0.2
 publish_to: none
@@ -22,4 +22,4 @@ dev_dependencies:
   very_good_analysis: ^10.0.0
 
 executables:
-  dart_create_class:
+  dartweave:

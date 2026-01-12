@@ -1,4 +1,4 @@
-import 'package:dart_create_class/src/common/template.dart';
+import 'package:dartweave/src/common/template.dart';
 
 /// Registry to manage all available templates
 class TemplateRegistry {

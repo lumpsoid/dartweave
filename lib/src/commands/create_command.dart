@@ -1,11 +1,11 @@
 import 'dart:io';
 import 'package:args/command_runner.dart';
-import 'package:dart_create_class/src/models/models.dart';
-import 'package:dart_create_class/src/utils.dart';
+import 'package:dartweave/src/models/models.dart';
+import 'package:dartweave/src/utils.dart';
 import 'package:mason_logger/mason_logger.dart';
 
 /// {@template create_class_command}
-/// `dart_create_class create <class_name> [options] [field1:type1 field2:type2 ...]`
+/// `dartweave create <class_name> [options] [field1:type1 field2:type2 ...]`
 /// A [Command] to create a Dart class file with standard methods
 /// {@endtemplate}
 class CreateClassCommand extends Command<int> {
