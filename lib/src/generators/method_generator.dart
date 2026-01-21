@@ -25,11 +25,18 @@ class MethodGenerator {
     final privateInitializers = <Field>[];
     final processedNames = <String>{};
 
-    // 1. Process existing parameters first to preserve order/defaults
+    // Create a set of current field names for validation
+    final currentFieldNames = _fields.map((f) {
+      return f.name.startsWith('_') ? f.name.substring(1) : f.name;
+    }).toSet();
+
+    // 1. Process existing parameters only if the field still exists
     if (existing != null) {
       for (final param in existing.params) {
-        _writeExistingParam(param);
-        processedNames.add(param.name);
+        if (currentFieldNames.contains(param.name)) {
+          _writeExistingParam(param);
+          processedNames.add(param.name);
+        }
       }
     }
 
