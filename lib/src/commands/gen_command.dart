@@ -6,8 +6,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:args/command_runner.dart';
 import 'package:dartweave/src/generators/generators.dart';
 import 'package:dartweave/src/mappers/mappers.dart';
-import 'package:dartweave/src/models/models.dart'
-    show ConstructorInfo, Field;
+import 'package:dartweave/src/models/models.dart' show ConstructorInfo, Field;
 import 'package:dartweave/src/utils.dart';
 import 'package:mason_logger/mason_logger.dart';
 
@@ -73,13 +72,7 @@ class GenCommand extends Command<int> {
 
   @override
   Future<int> run() async {
-    if (argResults!.rest.isEmpty) {
-      _logger.err('Class name is required');
-      printUsage();
-      return ExitCode.usage.code;
-    }
-
-    final className = argResults!.rest[0];
+    final className = argResults!.rest.isEmpty ? '' : argResults!.rest[0];
 
     // Get methods from different categories of flags
     final constructors = argResults?['constructor'] as List<String>? ?? [];
@@ -104,7 +97,8 @@ class GenCommand extends Command<int> {
     // Get file path or use default based on class name
     final filePath =
         argResults?['file'] as String? ?? '${className.toSnakeCase()}.dart';
-    final updateAllClasses = argResults?['all-classes'] as bool? ?? false;
+    final updateAllClasses =
+        argResults?['all-classes'] as bool? ?? className.isEmpty;
 
     try {
       final file = File(filePath);
