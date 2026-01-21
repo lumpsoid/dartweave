@@ -13,33 +13,32 @@ class CreateClassCommand extends Command<int> {
   CreateClassCommand({
     required Logger logger,
   }) : _logger = logger {
-    argParser.addOption(
-      'output',
-      abbr: 'o',
-      help: 'Output directory path (defaults to current directory)',
-    );
+    argParser
+      ..addOption(
+        'output',
+        abbr: 'o',
+        help: 'Output directory path (defaults to current directory)',
+      )
 
-    // Add multi-options for getters, methods, and constructors
-    argParser.addMultiOption(
-      'getter',
-      abbr: 'g',
-      help: 'Add a getter to the class (can be used multiple times)',
-      splitCommas: false,
-    );
-
-    argParser.addMultiOption(
-      'method',
-      abbr: 'm',
-      help: 'Add a method to the class (can be used multiple times)',
-      splitCommas: false,
-    );
-
-    argParser.addMultiOption(
-      'constructor',
-      abbr: 'c',
-      help: 'Add a constructor to the class (can be used multiple times)',
-      splitCommas: false,
-    );
+      // Add multi-options for getters, methods, and constructors
+      ..addMultiOption(
+        'getter',
+        abbr: 'g',
+        help: 'Add a getter to the class (can be used multiple times)',
+        splitCommas: false,
+      )
+      ..addMultiOption(
+        'method',
+        abbr: 'm',
+        help: 'Add a method to the class (can be used multiple times)',
+        splitCommas: false,
+      )
+      ..addMultiOption(
+        'constructor',
+        abbr: 'c',
+        help: 'Add a constructor to the class (can be used multiple times)',
+        splitCommas: false,
+      );
   }
 
   @override
