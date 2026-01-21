@@ -31,6 +31,7 @@ class GenCommand extends Command<int> {
         abbr: 'a',
         help: 'Sync methods for all classes in the file',
         negatable: false,
+        defaultsTo: null,
       )
       ..addMultiOption(
         'constructor',
