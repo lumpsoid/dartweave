@@ -1,7 +1,12 @@
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:cli_completion/cli_completion.dart';
+import 'package:dartweave/src/application/use_cases/generate_methods_use_case.dart';
 import 'package:dartweave/src/commands/commands.dart';
+import 'package:dartweave/src/infrastructure/repositories/ast_class_parser_repository.dart';
+import 'package:dartweave/src/infrastructure/repositories/ast_method_generator_repository.dart';
+import 'package:dartweave/src/presentation/commands/gen_command.dart';
+import 'package:dartweave/src/presentation/commands/test_command.dart';
 import 'package:dartweave/src/version.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:pub_updater/pub_updater.dart';
@@ -38,9 +43,19 @@ class DartCreateClassCommandRunner extends CompletionCommandRunner<int> {
         help: 'Noisy logging, including all shell commands executed.',
       );
 
+    final classParser = AstClassParserRepository();
     // Add sub commands
     addCommand(CreateClassCommand(logger: _logger));
-    addCommand(GenCommand(logger: _logger));
+    addCommand(TestCommand(classParserRepo: classParser, logger: _logger));
+    addCommand(
+      GenCommand(
+        logger: _logger,
+        generateMethodsUseCase: GenerateMethodsUseCase(
+          parserRepository: classParser,
+          generatorRepository: AstMethodGeneratorRepository(),
+        ),
+      ),
+    );
     addCommand(UpdateCommand(logger: _logger, pubUpdater: _pubUpdater));
   }
 
