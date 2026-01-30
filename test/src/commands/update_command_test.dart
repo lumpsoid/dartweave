@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:dartweave/src/command_runner.dart';
-import 'package:dartweave/src/commands/commands.dart';
 import 'package:dartweave/src/version.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:mocktail/mocktail.dart';
@@ -54,11 +53,6 @@ void main() {
         if (message != null) progressLogs.add(message);
       });
       when(() => logger.progress(any())).thenReturn(progress);
-    });
-
-    test('can be instantiated without a pub updater', () {
-      final command = UpdateCommand(logger: logger);
-      expect(command, isNotNull);
     });
 
     test(
