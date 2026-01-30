@@ -43,7 +43,7 @@ class GenerateMethodsUseCase {
         );
 
         if (generationResult.wasUpdated) {
-          updatedSourceCode = generationResult.updatedSourceCode ?? '';
+          updatedSourceCode = generationResult.updatedSourceCode;
           updatedClasses.add(classEntity.name);
           methodsByClass[classEntity.name] = generationResult.generatedMethods;
         }
@@ -54,7 +54,7 @@ class GenerateMethodsUseCase {
         updatedClasses: updatedClasses,
         methodsByClass: methodsByClass,
       );
-    } catch (e) {
+    } on Object catch (e) {
       return GenerationResult.failure(e.toString());
     }
   }

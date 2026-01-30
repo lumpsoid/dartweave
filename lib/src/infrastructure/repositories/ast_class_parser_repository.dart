@@ -91,6 +91,8 @@ class AstClassParserRepository implements ClassParserRepository {
                 isGenerator: m.isGenerator,
                 isStatic: m.isStatic,
                 parameters: m.parameters,
+                end: m.end,
+                offset: m.offset,
               ),
             )
             .toList();
@@ -103,6 +105,8 @@ class AstClassParserRepository implements ClassParserRepository {
                 isFactory: c.isFactory,
                 isRedirected: c.isRedirected,
                 parameters: c.parameters,
+                offset: c.offset,
+                end: c.end,
               ),
             )
             .toList();
@@ -118,6 +122,8 @@ class AstClassParserRepository implements ClassParserRepository {
                 hasSetter: g.hasSetter,
                 isSuper: g.isSuper,
                 parameters: g.parameters,
+                end: g.end,
+                offset: g.offset,
               ),
             )
             .toList();
@@ -133,6 +139,8 @@ class AstClassParserRepository implements ClassParserRepository {
                 hasSetter: s.hasSetter,
                 isSuper: s.isSuper,
                 parameters: s.parameters,
+                offset: s.offset,
+                end: s.end,
               ),
             )
             .toList();
@@ -144,6 +152,8 @@ class AstClassParserRepository implements ClassParserRepository {
                 returnType: o.returnType,
                 isAbstract: o.isAbstract,
                 parameters: o.parameters,
+                offset: o.offset,
+                end: o.end,
               ),
             )
             .toList();
@@ -182,7 +192,8 @@ class AstClassParserRepository implements ClassParserRepository {
 
     // If superclass is already resolved, return its fields
     if (classEntity.superclassEntity != null) {
-      return classEntity.superclassEntity!.allFields
+      return classEntity.superclassEntity!
+          .allFields()
           .map(
             (f) => Field(
               name: f.name,
@@ -211,7 +222,8 @@ class AstClassParserRepository implements ClassParserRepository {
       ),
     );
 
-    return superclass.allFields
+    return superclass
+        .allFields()
         .map(
           (f) => Field(
             name: f.name,
@@ -324,6 +336,8 @@ class ClassExtractionVisitor extends GeneralizingAstVisitor<void> {
             isAsync: member.body.isAsynchronous,
             isGenerator: member.body.isGenerator,
             parameters: _extractParameters(member.parameters),
+            offset: member.offset,
+            end: member.end,
           ),
         );
       }
@@ -342,6 +356,8 @@ class ClassExtractionVisitor extends GeneralizingAstVisitor<void> {
             isFactory: member.factoryKeyword != null,
             isRedirected: member.redirectedConstructor != null,
             parameters: _extractParameters(member.parameters),
+            offset: member.offset,
+            end: member.end,
           ),
         );
       }
@@ -369,6 +385,8 @@ class ClassExtractionVisitor extends GeneralizingAstVisitor<void> {
             isStatic: member.isStatic,
             isAbstract: member.body is EmptyFunctionBody,
             hasSetter: hasSetter,
+            offset: member.offset,
+            end: member.end,
           ),
         );
       }
@@ -392,6 +410,8 @@ class ClassExtractionVisitor extends GeneralizingAstVisitor<void> {
             // is for getters to indicate a read-write property.
             hasSetter: true,
             parameters: _extractParameters(member.parameters),
+            offset: member.offset,
+            end: member.end,
           ),
         );
       }
@@ -409,6 +429,8 @@ class ClassExtractionVisitor extends GeneralizingAstVisitor<void> {
             returnType: member.returnType?.toString() ?? 'dynamic',
             isAbstract: member.body is EmptyFunctionBody,
             parameters: _extractParameters(member.parameters),
+            offset: member.offset,
+            end: member.end,
           ),
         );
       }
