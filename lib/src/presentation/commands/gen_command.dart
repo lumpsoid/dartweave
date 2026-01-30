@@ -5,7 +5,6 @@ import 'package:dartweave/src/application/use_cases/generate_methods_use_case.da
 import 'package:dartweave/src/domain/entities/entities.dart';
 import 'package:mason_logger/mason_logger.dart';
 
-/// Refactored GenCommand using clean architecture
 class GenCommand extends Command<int> {
   GenCommand({
     required this.generateMethodsUseCase,
