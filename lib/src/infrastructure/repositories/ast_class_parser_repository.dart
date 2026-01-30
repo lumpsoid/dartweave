@@ -3,12 +3,8 @@ import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
-import 'package:dartweave/src/domain/entities/constructor_entity.dart';
 import 'package:dartweave/src/domain/entities/entities.dart';
-import 'package:dartweave/src/domain/entities/method_entity.dart';
-import 'package:dartweave/src/domain/entities/operator_entity.dart';
-import 'package:dartweave/src/domain/entities/parameter_entity.dart';
-import 'package:dartweave/src/domain/entities/property_entity.dart';
+import 'package:dartweave/src/domain/entities/function_body.dart' as d;
 import 'package:dartweave/src/domain/repositories/class_parser_repository.dart';
 
 /// AST-based implementation of ClassParserRepository
@@ -77,6 +73,8 @@ class AstClassParserRepository implements ClassParserRepository {
                 isFinal: f.isFinal,
                 isLate: f.isLate,
                 isStatic: f.isStatic,
+                offset: f.offset,
+                end: f.end,
               ),
             )
             .toList();
@@ -93,6 +91,7 @@ class AstClassParserRepository implements ClassParserRepository {
                 parameters: m.parameters,
                 end: m.end,
                 offset: m.offset,
+                body: m.body,
               ),
             )
             .toList();
@@ -204,6 +203,8 @@ class AstClassParserRepository implements ClassParserRepository {
               isFinal: f.isFinal,
               isLate: f.isLate,
               isStatic: f.isStatic,
+              offset: f.offset,
+              end: f.end,
             ),
           )
           .toList();
@@ -234,6 +235,8 @@ class AstClassParserRepository implements ClassParserRepository {
             isFinal: f.isFinal,
             isLate: f.isLate,
             isStatic: f.isStatic,
+            offset: f.offset,
+            end: f.end,
           ),
         )
         .toList();
@@ -312,6 +315,8 @@ class ClassExtractionVisitor extends GeneralizingAstVisitor<void> {
             isFinal: variable.isFinal,
             isLate: variable.isLate,
             isStatic: fieldDecl.isStatic,
+            offset: variable.offset,
+            end: variable.end,
           ),
         );
       }
@@ -338,6 +343,10 @@ class ClassExtractionVisitor extends GeneralizingAstVisitor<void> {
             parameters: _extractParameters(member.parameters),
             offset: member.offset,
             end: member.end,
+            body: d.FunctionBody(
+              offset: member.body.offset,
+              end: member.body.end,
+            ),
           ),
         );
       }

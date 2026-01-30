@@ -1,12 +1,10 @@
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:cli_completion/cli_completion.dart';
-import 'package:dartweave/src/application/use_cases/generate_methods_use_case.dart';
+import 'package:dartweave/src/application/use_cases/use_cases.dart';
 import 'package:dartweave/src/infrastructure/repositories/ast_class_parser_repository.dart';
 import 'package:dartweave/src/infrastructure/repositories/ast_method_generator_repository.dart';
 import 'package:dartweave/src/presentation/commands/commands.dart';
-import 'package:dartweave/src/presentation/commands/gen_command.dart';
-import 'package:dartweave/src/presentation/commands/test_command.dart';
 import 'package:dartweave/src/version.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:pub_updater/pub_updater.dart';
@@ -53,6 +51,13 @@ class DartCreateClassCommandRunner extends CompletionCommandRunner<int> {
           parserRepository: classParser,
           generatorRepository: AstMethodGeneratorRepository(),
         ),
+      ),
+    );
+    addCommand(
+      CreateUseCasesFromMethodsCommand(
+        logger: _logger,
+        generateUseCasesFromMethodsUseCase:
+            GenerateUseCasesFromMethodsUseCase(parserRepository: classParser),
       ),
     );
     addCommand(UpdateCommand(logger: _logger, pubUpdater: _pubUpdater));

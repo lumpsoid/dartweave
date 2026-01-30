@@ -1,3 +1,4 @@
+import 'package:dartweave/src/domain/entities/function_body.dart';
 import 'package:dartweave/src/domain/entities/parameter_entity.dart';
 import 'package:meta/meta.dart';
 
@@ -8,12 +9,14 @@ class MethodEntity {
     required this.returnType,
     required this.offset,
     required this.end,
+    required this.body,
     this.parameters = const [],
     this.isStatic = false,
     this.isAbstract = false,
     this.isAsync = false,
     this.isGenerator = false,
   });
+
   const MethodEntity.empty()
       : name = '',
         returnType = '',
@@ -23,7 +26,8 @@ class MethodEntity {
         isAsync = false,
         isGenerator = false,
         offset = 0,
-        end = 0;
+        end = 0,
+        body = const FunctionBody.empty();
 
   final String name;
   final String returnType;
@@ -34,6 +38,7 @@ class MethodEntity {
   final bool isGenerator;
   final int offset;
   final int end;
+  final FunctionBody body;
 
   MethodEntity copyWith({
     String? name,
@@ -45,6 +50,7 @@ class MethodEntity {
     bool? isGenerator,
     int? offset,
     int? end,
+    FunctionBody? body,
   }) {
     return MethodEntity(
       name: name ?? this.name,
@@ -56,6 +62,7 @@ class MethodEntity {
       isGenerator: isGenerator ?? this.isGenerator,
       offset: offset ?? this.offset,
       end: end ?? this.end,
+      body: body ?? this.body,
     );
   }
 
@@ -70,7 +77,8 @@ class MethodEntity {
         ' isAsync: $isAsync,'
         ' isGenerator: $isGenerator,'
         ' offset: $offset,'
-        ' end: $end)';
+        ' end: $end,'
+        ' body: $body)';
   }
 
   @override
@@ -84,7 +92,8 @@ class MethodEntity {
         other.isAsync == isAsync &&
         other.isGenerator == isGenerator &&
         other.offset == offset &&
-        other.end == end;
+        other.end == end &&
+        other.body == body;
   }
 
   @override
@@ -99,6 +108,7 @@ class MethodEntity {
       isGenerator,
       offset,
       end,
+      body,
     );
   }
 }

@@ -1,10 +1,13 @@
-import 'package:equatable/equatable.dart';
+import 'package:meta/meta.dart';
 
 /// Domain entity representing a class field
-class Field extends Equatable {
+@immutable
+class Field {
   const Field({
     required this.name,
     required this.type,
+    required this.offset,
+    required this.end,
     this.nullable = false,
     this.isSuper = false,
     this.isFinal = false,
@@ -12,6 +15,18 @@ class Field extends Equatable {
     this.isStatic = false,
     this.isLate = false,
   });
+
+  const Field.empty()
+      : name = '',
+        type = '',
+        nullable = false,
+        isSuper = false,
+        isFinal = false,
+        isConst = false,
+        isStatic = false,
+        isLate = false,
+        offset = 0,
+        end = 0;
 
   final String name;
   final String type;
@@ -21,36 +36,8 @@ class Field extends Equatable {
   final bool isConst;
   final bool isStatic;
   final bool isLate;
-
-  @override
-  List<Object?> get props => [
-        name,
-        type,
-        nullable,
-        isSuper,
-        isFinal,
-        isConst,
-        isStatic,
-        isLate,
-      ];
-
-  /// Factory method to create a Field from definition string
-  static Field fromDefinition(String definition) {
-    final parts = definition.split(':');
-    if (parts.length != 2) {
-      throw FormatException('Invalid field definition: $definition');
-    }
-
-    final name = parts[0];
-    var type = parts[1];
-    final nullable = type.endsWith('?');
-
-    if (nullable) {
-      type = type.substring(0, type.length - 1);
-    }
-
-    return Field(name: name, type: type, nullable: nullable);
-  }
+  final int offset;
+  final int end;
 
   @override
   String toString() {
@@ -62,6 +49,87 @@ class Field extends Equatable {
         ' isFinal: $isFinal,'
         ' isConst: $isConst,'
         ' isStatic: $isStatic,'
-        ' isLate: $isLate)';
+        ' isLate: $isLate,'
+        ' offset: $offset,'
+        ' end: $end)';
+  }
+
+  /// Returns the Dart source code representation of this field.
+  String toSourceCode() {
+    final buffer = StringBuffer();
+
+    if (isStatic) buffer.write('static ');
+    if (isLate) buffer.write('late ');
+
+    if (isConst) {
+      buffer.write('const ');
+    } else if (isFinal) {
+      buffer.write('final ');
+    }
+
+    buffer.write(type);
+    if (nullable) buffer.write('?');
+    buffer.write(' ');
+    buffer.write(name);
+    buffer.write(';');
+
+    return buffer.toString();
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is Field &&
+        other.name == name &&
+        other.type == type &&
+        other.nullable == nullable &&
+        other.isSuper == isSuper &&
+        other.isFinal == isFinal &&
+        other.isConst == isConst &&
+        other.isStatic == isStatic &&
+        other.isLate == isLate &&
+        other.offset == offset &&
+        other.end == end;
+  }
+
+  @override
+  int get hashCode {
+    return Object.hash(
+      name,
+      type,
+      nullable,
+      isSuper,
+      isFinal,
+      isConst,
+      isStatic,
+      isLate,
+      offset,
+      end,
+    );
+  }
+
+  Field copyWith({
+    String? name,
+    String? type,
+    bool? nullable,
+    bool? isSuper,
+    bool? isFinal,
+    bool? isConst,
+    bool? isStatic,
+    bool? isLate,
+    int? offset,
+    int? end,
+  }) {
+    return Field(
+      name: name ?? this.name,
+      type: type ?? this.type,
+      nullable: nullable ?? this.nullable,
+      isSuper: isSuper ?? this.isSuper,
+      isFinal: isFinal ?? this.isFinal,
+      isConst: isConst ?? this.isConst,
+      isStatic: isStatic ?? this.isStatic,
+      isLate: isLate ?? this.isLate,
+      offset: offset ?? this.offset,
+      end: end ?? this.end,
+    );
   }
 }

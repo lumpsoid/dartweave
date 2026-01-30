@@ -3,10 +3,11 @@ import 'package:dartweave/src/domain/entities/field.dart';
 import 'package:dartweave/src/domain/entities/method_entity.dart';
 import 'package:dartweave/src/domain/entities/operator_entity.dart';
 import 'package:dartweave/src/domain/entities/property_entity.dart';
-import 'package:equatable/equatable.dart';
+import 'package:meta/meta.dart';
 
 /// Domain entity representing a Dart class
-class ClassEntity extends Equatable {
+@immutable
+class ClassEntity {
   const ClassEntity({
     required this.name,
     required this.offset,
@@ -35,21 +36,6 @@ class ClassEntity extends Equatable {
 
   bool get isZeroOffset => (end - offset) == 0;
 
-  @override
-  List<Object?> get props => [
-        name,
-        fields,
-        methods,
-        constructors,
-        getters,
-        setters,
-        operators,
-        superclassEntity,
-        isAbstract,
-        offset,
-        end,
-      ];
-
   // Convenience getter to recursively get all fields including inherited ones
   List<Field> allFields() {
     final all = [...fields];
@@ -65,6 +51,8 @@ class ClassEntity extends Equatable {
                 isFinal: f.isFinal,
                 isLate: f.isLate,
                 isStatic: f.isStatic,
+                offset: f.offset,
+                end: f.end,
               ),
             ),
       );
@@ -86,5 +74,66 @@ class ClassEntity extends Equatable {
         ' isAbstract: $isAbstract,'
         ' offset: $offset,'
         ' end: $end)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is ClassEntity &&
+        other.name == name &&
+        other.fields == fields &&
+        other.methods == methods &&
+        other.constructors == constructors &&
+        other.getters == getters &&
+        other.setters == setters &&
+        other.operators == operators &&
+        other.superclassEntity == superclassEntity &&
+        other.isAbstract == isAbstract &&
+        other.offset == offset &&
+        other.end == end;
+  }
+
+  @override
+  int get hashCode {
+    return Object.hash(
+      name,
+      fields,
+      methods,
+      constructors,
+      getters,
+      setters,
+      operators,
+      superclassEntity,
+      isAbstract,
+      offset,
+      end,
+    );
+  }
+
+  ClassEntity copyWith({
+    String? name,
+    List<Field>? fields,
+    List<MethodEntity>? methods,
+    List<ConstructorEntity>? constructors,
+    List<PropertyEntity>? getters,
+    List<PropertyEntity>? setters,
+    List<OperatorEntity>? operators,
+    ClassEntity? superclassEntity,
+    bool? isAbstract,
+    int? offset,
+    int? end,
+  }) {
+    return ClassEntity(
+      name: name ?? this.name,
+      fields: fields ?? this.fields,
+      methods: methods ?? this.methods,
+      constructors: constructors ?? this.constructors,
+      getters: getters ?? this.getters,
+      setters: setters ?? this.setters,
+      operators: operators ?? this.operators,
+      superclassEntity: superclassEntity ?? this.superclassEntity,
+      isAbstract: isAbstract ?? this.isAbstract,
+      offset: offset ?? this.offset,
+      end: end ?? this.end,
+    );
   }
 }

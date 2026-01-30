@@ -1,5 +1,11 @@
 export 'class_entity.dart';
+export 'constructor_entity.dart';
 export 'field.dart';
+export 'function_body.dart';
 export 'generation_result.dart';
+export 'method_entity.dart';
 export 'method_type.dart';
+export 'operator_entity.dart';
+export 'parameter_entity.dart';
+export 'property_entity.dart';
 export 'source_code_change.dart';
