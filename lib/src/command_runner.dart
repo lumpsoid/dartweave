@@ -45,7 +45,6 @@ class DartCreateClassCommandRunner extends CompletionCommandRunner<int> {
 
     final classParser = AstClassParserRepository();
     // Add sub commands
-    addCommand(CreateClassCommand(logger: _logger));
     addCommand(TestCommand(classParserRepo: classParser, logger: _logger));
     addCommand(
       GenCommand(
