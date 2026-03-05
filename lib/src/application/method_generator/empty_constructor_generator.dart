@@ -20,7 +20,7 @@ class EmptyConstructorGenerator implements MethodGenerator {
 
     final buffer = StringBuffer()
       ..writeln('const ${classEntity.name}.empty()')
-      ..write('      : ');
+      ..write('    : ');
 
     for (var i = 0; i < allFields.length; i++) {
       final field = allFields[i];
@@ -44,7 +44,7 @@ class EmptyConstructorGenerator implements MethodGenerator {
 
       buffer.write('${field.name} = $defaultValue');
       if (i < allFields.length - 1) {
-        buffer.write(',\n        ');
+        buffer.write(',\n      ');
       }
     }
     buffer.write(';');
