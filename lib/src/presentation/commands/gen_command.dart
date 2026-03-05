@@ -73,6 +73,9 @@ class GenCommand extends Command<int> {
       return ExitCode.usage.code;
     }
 
+    final updateAllClasses =
+        (argResults!['all-classes'] as bool) || className.isEmpty;
+
     try {
       final finalFilePath = filePath ?? '${className.toSnakeCase()}.dart';
       final file = File(finalFilePath);
@@ -88,7 +91,7 @@ class GenCommand extends Command<int> {
         filePath: finalFilePath,
         sourceCode: sourceCode,
         methodTypes: methodTypes,
-        updateAllClasses: argResults!['all-classes'] as bool,
+        updateAllClasses: updateAllClasses,
       );
 
       _logger.info(
