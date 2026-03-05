@@ -1,6 +1,7 @@
 import 'package:dartweave/src/application/method_generator/method_generator.dart';
 import 'package:dartweave/src/domain/create_source_code_change_from_class_entity.dart';
 import 'package:dartweave/src/domain/entities/entities.dart';
+import 'package:dartweave/src/domain/write_to_buffer.dart';
 
 class EqualityOperatorGenerator implements MethodGenerator {
   @override
@@ -19,7 +20,7 @@ class EqualityOperatorGenerator implements MethodGenerator {
       final field = allFields[i];
       final isNotEndLine = i < allFields.length - 1;
       final endString = isNotEndLine ? ' &&' : ';';
-      write(
+      writeToBuffer(
         buffer,
         '          other.${field.name} == ${field.name}$endString',
         ln: isNotEndLine,
@@ -27,13 +28,5 @@ class EqualityOperatorGenerator implements MethodGenerator {
     }
 
     return createSourceCodeChangeForOperator(classEntity, '==', buffer);
-  }
-
-  void write(StringBuffer buffer, String body, {bool ln = false}) {
-    if (ln) {
-      buffer.writeln(body);
-    } else {
-      buffer.write(body);
-    }
   }
 }

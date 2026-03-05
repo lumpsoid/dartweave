@@ -13,11 +13,11 @@ class ToStringGenerator implements MethodGenerator {
 
     final buffer = StringBuffer()
       ..writeln('@override\n  String toString() {')
-      ..write("    return '${classEntity.name}('");
+      ..writeln("    return '${classEntity.name}('");
     for (var i = 0; i < allFields.length; i++) {
       final field = allFields[i];
       final endString = i < allFields.length - 1 ? ',' : '';
-      buffer.write(
+      buffer.writeln(
         "        ' ${field.name}: \$${field.name}$endString'",
       ); // Add comma for all but the last field
     }
