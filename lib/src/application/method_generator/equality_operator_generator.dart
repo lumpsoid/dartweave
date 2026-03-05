@@ -12,18 +12,28 @@ class EqualityOperatorGenerator implements MethodGenerator {
     final allFields = classEntity.allFields();
 
     final buffer = StringBuffer()
-      ..writeln('@override\n  bool operator ==(Object other) {')
-      ..writeln('    if (identical(this, other)) return true;')
-      ..writeln('    return other is ${classEntity.name} &&');
+      ..writeln('@override\n  bool operator ==(Object other) =>')
+      ..writeln('      identical(this, other) ||')
+      ..writeln('      other is ${classEntity.name} &&');
     for (var i = 0; i < allFields.length; i++) {
       final field = allFields[i];
-      final endString = i < allFields.length - 1 ? ' &&' : ';';
-      buffer.writeln(
-        '        other.${field.name} == ${field.name}$endString',
+      final isNotEndLine = i < allFields.length - 1;
+      final endString = isNotEndLine ? ' &&' : ';';
+      write(
+        buffer,
+        '          other.${field.name} == ${field.name}$endString',
+        ln: isNotEndLine,
       );
     }
-    buffer.write('  }');
 
     return createSourceCodeChangeForOperator(classEntity, '==', buffer);
+  }
+
+  void write(StringBuffer buffer, String body, {bool ln = false}) {
+    if (ln) {
+      buffer.writeln(body);
+    } else {
+      buffer.write(body);
+    }
   }
 }
