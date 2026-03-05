@@ -4,6 +4,8 @@ class ParameterEntity extends Equatable {
   const ParameterEntity({
     required this.name,
     required this.type,
+    required this.offset,
+    required this.end,
     this.isNamed = false,
     this.isRequired = false,
     this.isOptional = false, // Positional optional
@@ -20,6 +22,8 @@ class ParameterEntity extends Equatable {
   final String? defaultValue;
   final bool isPositional;
   final bool nullable;
+  final int offset;
+  final int end;
 
   @override
   List<Object?> get props => [
@@ -31,6 +35,8 @@ class ParameterEntity extends Equatable {
         defaultValue,
         isPositional,
         nullable,
+        offset,
+        end,
       ];
 
   @override

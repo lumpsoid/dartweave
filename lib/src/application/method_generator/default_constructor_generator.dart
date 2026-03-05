@@ -5,48 +5,69 @@ import 'package:dartweave/src/domain/entities/entities.dart';
 class DefaultConstructorGenerator implements MethodGenerator {
   @override
   SourceCodeChange? generate(ClassEntity classEntity, String sourceCode) {
-    if (classEntity.isZeroOffset) {
-      return null;
-    }
+    if (classEntity.isZeroOffset) return null;
 
-    final allFields = classEntity.allFields();
-    // For simplicity, we'll generate a default constructor with required
-    // `this.field` parameters.
-    // A more complete implementation might parse existing constructors to
-    // determine `const` or `late`.
-    final buffer = StringBuffer()..writeln('${classEntity.name}({');
+    final allFields = classEntity
+        .allFields()
+        .where((f) => !f.isStatic && !f.isConst)
+        .toList();
+
+    final existingConstructor =
+        classEntity.constructors.where((c) => c.name == null).firstOrNull;
+
+    final isConst = existingConstructor?.isConst ?? false;
+    final prefix = isConst ? 'const ' : '';
+
+    // Parameters already written by the user, keyed by public param name.
+    // These are preserved verbatim from source — we must not regenerate them.
+    final existingParams = {
+      if (existingConstructor != null)
+        for (final p in existingConstructor.parameters) p.name: p,
+    };
+
+    // Stale params: were in the constructor but their field no longer exists
+    // — we drop them by simply not emitting them.
+
+    final buffer = StringBuffer()..writeln('$prefix${classEntity.name}({');
+
     for (final field in allFields) {
-      // Assuming all fields are required for a default constructor for
-      // simplicity
-      // Real implementation would inspect nullability and existing constructor
-      // parameters
-      var paramName = field.name;
-      if (paramName.startsWith('_')) {
-        paramName =
-            paramName.substring(1); // Private field, public parameter name
+      final isPrivate = field.name.startsWith('_');
+      final paramName = isPrivate ? field.name.substring(1) : field.name;
+
+      if (existingParams.containsKey(paramName)) {
+        // Field was already present in the constructor — preserve the user's
+        // exact source text for this parameter unchanged.
+        final existing = existingParams[paramName]!;
         buffer.writeln(
-          '    required ${field.type}${field.nullable ? '?' : ''} $paramName,',
+          '    ${sourceCode.substring(existing.offset, existing.end)},',
         );
       } else {
-        buffer.writeln('    required this.${field.name},');
-      }
-    }
-    buffer.write('  })');
-
-    final privateInitializers =
-        allFields.where((f) => f.name.startsWith('_')).toList();
-
-    if (privateInitializers.isNotEmpty) {
-      buffer.write('\n      : ');
-      for (var i = 0; i < privateInitializers.length; i++) {
-        final f = privateInitializers[i];
-        final paramName = f.name.substring(1);
-        buffer.write('${f.name} = $paramName');
-        if (i < privateInitializers.length - 1) {
-          buffer.write(',\n        ');
+        // New field — not yet in the constructor, generate the default form.
+        final typeAnnotation = '${field.type}${field.nullable ? '?' : ''}';
+        if (isPrivate) {
+          buffer.writeln('    required $typeAnnotation $paramName,');
+        } else {
+          buffer.writeln('    required this.$paramName,');
         }
       }
     }
+
+    buffer.write('  })');
+
+    // Initializer list: preserve existing entries for private fields still
+    // present, append new ones for private fields just added.
+    final privateFields =
+        allFields.where((f) => f.name.startsWith('_')).toList();
+    if (privateFields.isNotEmpty) {
+      buffer.write('\n      : ');
+      for (var i = 0; i < privateFields.length; i++) {
+        final f = privateFields[i];
+        final paramName = f.name.substring(1);
+        buffer.write('${f.name} = $paramName');
+        if (i < privateFields.length - 1) buffer.write(',\n        ');
+      }
+    }
+
     buffer.write(';');
 
     return createSourceCodeChangeForConstructor(classEntity, null, buffer);

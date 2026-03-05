@@ -460,6 +460,8 @@ class ClassExtractionVisitor extends GeneralizingAstVisitor<void> {
         ParameterEntity(
           name: param.name?.lexeme ?? '',
           type: typeAnnotation,
+          offset: param.offset,
+          end: param.end,
           isNamed: param.isNamed,
           isRequired: param.isRequired,
           isOptional: param.isOptional,
