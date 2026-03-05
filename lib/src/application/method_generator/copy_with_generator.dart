@@ -14,7 +14,7 @@ class CopyWithGenerator implements MethodGenerator {
     final buffer = StringBuffer()..writeln('${classEntity.name} copyWith({');
     for (final field in allFields) {
       buffer.writeln(
-        '    ${field.type}${field.nullable ? '' : '?'} ${field.name},',
+        '    ${field.type}? ${field.name},',
       );
     }
 
