@@ -76,6 +76,28 @@ class Field {
     return buffer.toString();
   }
 
+  /// Returns the default value for this field based on its type.
+  String get defaultValue {
+    if (nullable) return 'null';
+    switch (type) {
+      case 'String':
+        return "''";
+      case 'int':
+      case 'double':
+        return '0';
+      case 'bool':
+        return 'false';
+      case 'List':
+        return 'const []';
+      case 'Map':
+        return 'const {}';
+      case 'Set':
+        return 'const {}';
+      default:
+        return 'null'; // Fallback — may require manual handling
+    }
+  }
+
   @override
   bool operator ==(Object other) {
     return other is Field &&
