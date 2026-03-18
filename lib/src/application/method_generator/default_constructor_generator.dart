@@ -4,6 +4,7 @@ import 'package:dartweave/src/domain/entities/entities.dart';
 
 class DefaultConstructorGenerator implements MethodGenerator {
   static const MethodType methodType = MethodType.defaultConstructor;
+
   @override
   SourceCodeChange generate(ClassEntity classEntity, String sourceCode) {
     if (classEntity.isZeroOffset) {
@@ -21,26 +22,47 @@ class DefaultConstructorGenerator implements MethodGenerator {
     final isConst = existingConstructor?.isConst ?? false;
     final prefix = isConst ? 'const ' : '';
 
-    // Parameters already written by the user, keyed by public param name.
-    // These are preserved verbatim from source — we must not regenerate them.
-    final existingParams = {
+    // Separate existing params by kind.
+    // Positional params are preserved verbatim and emitted before the named block.
+    // Named params are keyed by name so we can match them against fields.
+    final existingPositional =
+        existingConstructor?.parameters.where((p) => p.isPositional).toList() ??
+            [];
+
+    // Build a set of names already covered by positional params so we can skip
+    // them when iterating fields.
+    final positionalParamNames = existingPositional.map((p) => p.name).toSet();
+
+    final existingNamed = {
       if (existingConstructor != null)
-        for (final p in existingConstructor.parameters) p.name: p,
+        for (final p in existingConstructor.parameters.where((p) => p.isNamed))
+          p.name: p,
     };
 
-    // Stale params: were in the constructor but their field no longer exists
-    // — we drop them by simply not emitting them.
+    final buffer = StringBuffer()..write('$prefix${classEntity.name}(');
 
-    final buffer = StringBuffer()..writeln('$prefix${classEntity.name}({');
+    // 1. Emit positional parameters first (preserved verbatim).
+    //    These are not tied to fields — just carry them forward unchanged.
+    for (final p in existingPositional) {
+      buffer.write('${sourceCode.substring(p.offset, p.end)}, ');
+    }
+
+    // 2. Open named-parameter block.
+    buffer.writeln('{');
 
     for (final field in allFields) {
       final isPrivate = field.name.startsWith('_');
       final paramName = isPrivate ? field.name.substring(1) : field.name;
 
-      if (existingParams.containsKey(paramName)) {
-        // Field was already present in the constructor — preserve the user's
+      if (positionalParamNames.contains(paramName)) {
+        // Already emitted as a positional param above — skip.
+        continue;
+      }
+
+      if (existingNamed.containsKey(paramName)) {
+        // Field was already present as a named param — preserve the user's
         // exact source text for this parameter unchanged.
-        final existing = existingParams[paramName]!;
+        final existing = existingNamed[paramName]!;
         buffer.writeln(
           '    ${sourceCode.substring(existing.offset, existing.end)},',
         );
@@ -57,8 +79,8 @@ class DefaultConstructorGenerator implements MethodGenerator {
 
     buffer.write('  })');
 
-    // Initializer list: preserve existing entries for private fields still
-    // present, append new ones for private fields just added.
+    // Initializer list: emit entries for all private fields still present,
+    // whether they existed before or were just added.
     final privateFields =
         allFields.where((f) => f.name.startsWith('_')).toList();
     if (privateFields.isNotEmpty) {
