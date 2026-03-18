@@ -13,7 +13,7 @@ class GenerateMethodsUseCase {
   final MethodGeneratorRepository generatorRepository;
 
   /// Generate methods for a class
-  Future<GenerationResult> execute(GenerationRequest request) async {
+  Future<GenerateMethodsResult> execute(GenerationRequest request) async {
     try {
       final classes = parserRepository.parseClasses(
         request.sourceCode,
@@ -21,19 +21,17 @@ class GenerateMethodsUseCase {
       );
 
       if (classes.isEmpty) {
-        return GenerationResult.failure('No classes found in the file');
+        return const NoClassesFoundFailure();
       }
 
       final targetClasses = _filterTargetClasses(classes, request);
       if (targetClasses.isEmpty) {
-        return GenerationResult.failure(
-          'Class "${request.className}" not found',
-        );
+        return ClassNotFoundFailure(className: request.className);
       }
 
-      final updatedClasses = <String>[];
-      final methodsByClass = <String, List<String>>{};
+      final updatedClasses = <GenerationResult>[];
       var updatedSourceCode = request.sourceCode;
+      var wasUpdated = false;
 
       for (final classEntity in targetClasses) {
         final generationResult = generatorRepository.generateMethods(
@@ -43,19 +41,19 @@ class GenerateMethodsUseCase {
         );
 
         if (generationResult.wasUpdated) {
+          wasUpdated = true;
           updatedSourceCode = generationResult.updatedSourceCode;
-          updatedClasses.add(classEntity.name);
-          methodsByClass[classEntity.name] = generationResult.generatedMethods;
         }
+        updatedClasses.add(generationResult);
       }
 
-      return GenerationResult.success(
+      return GenerateMethodsOk(
         updatedSourceCode: updatedSourceCode,
-        updatedClasses: updatedClasses,
-        methodsByClass: methodsByClass,
+        results: updatedClasses,
+        wasUpdated: wasUpdated,
       );
     } on Object catch (e) {
-      return GenerationResult.failure(e.toString());
+      return GenerationExceptionFailure(message: e.toString());
     }
   }
 
@@ -88,40 +86,33 @@ class GenerationRequest {
 }
 
 /// Output data for generation result
-class GenerationResult {
-  const GenerationResult({
-    required this.isSuccess,
+sealed class GenerateMethodsResult {
+  const GenerateMethodsResult();
+}
+
+class GenerateMethodsOk implements GenerateMethodsResult {
+  const GenerateMethodsOk({
+    required this.wasUpdated,
     this.updatedSourceCode,
-    this.updatedClasses = const [],
-    this.methodsByClass = const {},
-    this.errorMessage,
+    this.results = const [],
   });
 
-  factory GenerationResult.success({
-    required String updatedSourceCode,
-    List<String> updatedClasses = const [],
-    Map<String, List<String>> methodsByClass = const {},
-  }) {
-    return GenerationResult(
-      isSuccess: true,
-      updatedSourceCode: updatedSourceCode,
-      updatedClasses: updatedClasses,
-      methodsByClass: methodsByClass,
-    );
-  }
-
-  factory GenerationResult.failure(String errorMessage) {
-    return GenerationResult(
-      isSuccess: false,
-      errorMessage: errorMessage,
-    );
-  }
-
-  final bool isSuccess;
+  final bool wasUpdated;
   final String? updatedSourceCode;
-  final List<String> updatedClasses;
-  final Map<String, List<String>> methodsByClass;
-  final String? errorMessage;
+  final List<GenerationResult> results;
+}
 
-  bool get wasUpdated => updatedClasses.isNotEmpty;
+class NoClassesFoundFailure extends GenerateMethodsResult {
+  const NoClassesFoundFailure();
+}
+
+class ClassNotFoundFailure extends GenerateMethodsResult {
+  const ClassNotFoundFailure({required this.className});
+
+  final String className;
+}
+
+class GenerationExceptionFailure extends GenerateMethodsResult {
+  const GenerationExceptionFailure({required this.message});
+  final String message;
 }

@@ -3,10 +3,11 @@ import 'package:dartweave/src/domain/create_source_code_change_from_class_entity
 import 'package:dartweave/src/domain/entities/entities.dart';
 
 class IsEmptyGetterGenerator implements MethodGenerator {
+  static const MethodType methodType = MethodType.isEmptyGetter;
   @override
-  SourceCodeChange? generate(ClassEntity classEntity, String sourceCode) {
+  SourceCodeChange generate(ClassEntity classEntity, String sourceCode) {
     if (classEntity.isZeroOffset) {
-      return null;
+      return ZeroClassOffsetFailure(method: methodType.name);
     }
 
     final allFields = classEntity.allFields();
@@ -16,7 +17,12 @@ class IsEmptyGetterGenerator implements MethodGenerator {
         // Or you might have a different default logic.
         ..write('bool get isEmpty => true;');
 
-      return createSourceCodeChangeForGetter(classEntity, 'isEmpty', buffer);
+      return createSourceCodeChangeForGetter(
+        methodType.name,
+        classEntity,
+        'isEmpty',
+        buffer,
+      );
     }
 
     final buffer = StringBuffer()..write('bool get isEmpty =>');
@@ -48,6 +54,11 @@ class IsEmptyGetterGenerator implements MethodGenerator {
       buffer.write('\n      $isEmptyCondition$endString');
     }
 
-    return createSourceCodeChangeForGetter(classEntity, 'isEmpty', buffer);
+    return createSourceCodeChangeForGetter(
+      methodType.name,
+      classEntity,
+      'isEmpty',
+      buffer,
+    );
   }
 }

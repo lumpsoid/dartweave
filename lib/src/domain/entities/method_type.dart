@@ -19,4 +19,9 @@ enum MethodType {
       orElse: () => throw ArgumentError('Unknown method type: $name'),
     );
   }
+
+  @override
+  String toString() {
+    return name;
+  }
 }

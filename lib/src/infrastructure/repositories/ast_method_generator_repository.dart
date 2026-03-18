@@ -18,34 +18,72 @@ class AstMethodGeneratorRepository implements MethodGeneratorRepository {
       final generator = _getGenerator(methodType, classEntity);
       final change = generator.generate(classEntity, sourceCode);
 
-      if (change != null) {
-        changes.add(change);
+      changes.add(change);
+      if (change is SourceCodeChangeOk) {
         generatedMethods.add(methodType.name);
       }
     }
 
     if (changes.isEmpty) {
       return GenerationResult(
+        className: classEntity.name,
         updatedSourceCode: sourceCode,
-        wasUpdated: false,
         generatedMethods: generatedMethods,
       );
     }
 
     // Apply changes from bottom to top
-    changes.sort((a, b) => b.startOffset.compareTo(a.startOffset));
+    final result = changes.fold(
+      (success: <SourceCodeChangeOk>[], errors: <GenerationError>[]),
+      (acc, change) => switch (change) {
+        SourceCodeChangeOk() => (
+            success: acc.success..add(change),
+            errors: acc.errors
+          ),
+        SourceCodeChangeFailure() => (
+            success: acc.success,
+            errors: acc.errors
+              ..add(
+                GenerationFailure(message: change.message),
+              ),
+          ),
+        NoDefaultConstructorFailure() => (
+            success: acc.success,
+            errors: acc.errors
+              ..add(
+                NoDefaultGenerationError(methodType: change.method),
+              ),
+          ),
+        ZeroClassOffsetFailure() => (
+            success: acc.success,
+            errors: acc.errors
+              ..add(
+                ZeroClassOffsetGenerationError(methodType: change.method),
+              ),
+          ),
+        NoFieldsFailure() => (
+            success: acc.success,
+            errors: acc.errors
+              ..add(
+                NoFieldsGenerationError(methodType: change.method),
+              ),
+          ),
+      },
+    );
+    result.success.sort((a, b) => b.startOffset.compareTo(a.startOffset));
     var updatedSourceCode = sourceCode;
 
-    for (final change in changes) {
+    for (final change in result.success) {
       updatedSourceCode = updatedSourceCode.substring(0, change.startOffset) +
           change.newContent +
           updatedSourceCode.substring(change.endOffset);
     }
 
     return GenerationResult(
+      className: classEntity.name,
       updatedSourceCode: updatedSourceCode,
-      wasUpdated: true,
       generatedMethods: generatedMethods,
+      errors: result.errors,
     );
   }
 

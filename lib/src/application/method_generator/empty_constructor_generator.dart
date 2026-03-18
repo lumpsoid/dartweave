@@ -4,14 +4,15 @@ import 'package:dartweave/src/domain/entities/entities.dart';
 
 /// Implementation for empty constructor generator
 class EmptyConstructorGenerator implements MethodGenerator {
+  static const MethodType methodType = MethodType.emptyConstructor;
   @override
-  SourceCodeChange? generate(ClassEntity classEntity, String sourceCode) {
+  SourceCodeChange generate(ClassEntity classEntity, String sourceCode) {
     if (classEntity.isZeroOffset) {
-      return null;
+      return ZeroClassOffsetFailure(method: methodType.name);
     }
     final allFields = classEntity.allFields();
     if (allFields.isEmpty) {
-      return null;
+      return NoFieldsFailure(method: methodType.name);
     }
 
     // Find existing .empty() constructor from the already-parsed entity
@@ -50,7 +51,12 @@ class EmptyConstructorGenerator implements MethodGenerator {
     }
 
     buffer.write(';');
-    return createSourceCodeChangeForConstructor(classEntity, 'empty', buffer);
+    return createSourceCodeChangeForConstructor(
+      methodType.name,
+      classEntity,
+      'empty',
+      buffer,
+    );
   }
 
   /// Slices the initializer list from a constructor declaration string and

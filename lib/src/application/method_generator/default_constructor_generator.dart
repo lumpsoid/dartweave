@@ -3,9 +3,12 @@ import 'package:dartweave/src/domain/create_source_code_change_from_class_entity
 import 'package:dartweave/src/domain/entities/entities.dart';
 
 class DefaultConstructorGenerator implements MethodGenerator {
+  static const MethodType methodType = MethodType.defaultConstructor;
   @override
-  SourceCodeChange? generate(ClassEntity classEntity, String sourceCode) {
-    if (classEntity.isZeroOffset) return null;
+  SourceCodeChange generate(ClassEntity classEntity, String sourceCode) {
+    if (classEntity.isZeroOffset) {
+      return ZeroClassOffsetFailure(method: methodType.name);
+    }
 
     final allFields = classEntity
         .allFields()
@@ -70,6 +73,11 @@ class DefaultConstructorGenerator implements MethodGenerator {
 
     buffer.write(';');
 
-    return createSourceCodeChangeForConstructor(classEntity, null, buffer);
+    return createSourceCodeChangeForConstructor(
+      methodType.name,
+      classEntity,
+      null,
+      buffer,
+    );
   }
 }

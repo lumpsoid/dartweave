@@ -1,6 +1,7 @@
 import 'package:dartweave/src/domain/entities/entities.dart';
 
 SourceCodeChange _createSourceCodeChangeGeneric<T>(
+  String methodType,
   ClassEntity classEntity,
   String? name,
   StringBuffer buffer,
@@ -14,14 +15,16 @@ SourceCodeChange _createSourceCodeChangeGeneric<T>(
 
   if (isPresent) {
     final entity = entities[index];
-    return SourceCodeChange(
+    return SourceCodeChangeOk(
+      method: methodType,
       startOffset: getOffset(entity),
       endOffset: getEnd(entity),
       newContent: '$buffer',
     );
   }
 
-  return SourceCodeChange(
+  return SourceCodeChangeOk(
+    method: methodType,
     startOffset: classEntity.end - 1,
     endOffset: classEntity.end - 1,
     newContent: '\n  $buffer\n',
@@ -29,11 +32,13 @@ SourceCodeChange _createSourceCodeChangeGeneric<T>(
 }
 
 SourceCodeChange createSourceCodeChangeForMethod(
+  String methodType,
   ClassEntity classEntity,
   String name,
   StringBuffer buffer,
 ) =>
     _createSourceCodeChangeGeneric(
+      methodType,
       classEntity,
       name,
       buffer,
@@ -44,11 +49,13 @@ SourceCodeChange createSourceCodeChangeForMethod(
     );
 
 SourceCodeChange createSourceCodeChangeForGetter(
+  String methodType,
   ClassEntity classEntity,
   String name,
   StringBuffer buffer,
 ) =>
     _createSourceCodeChangeGeneric(
+      methodType,
       classEntity,
       name,
       buffer,
@@ -59,11 +66,13 @@ SourceCodeChange createSourceCodeChangeForGetter(
     );
 
 SourceCodeChange createSourceCodeChangeForSetter(
+  String methodType,
   ClassEntity classEntity,
   String name,
   StringBuffer buffer,
 ) =>
     _createSourceCodeChangeGeneric(
+      methodType,
       classEntity,
       name,
       buffer,
@@ -74,11 +83,13 @@ SourceCodeChange createSourceCodeChangeForSetter(
     );
 
 SourceCodeChange createSourceCodeChangeForConstructor(
+  String methodType,
   ClassEntity classEntity,
   String? name,
   StringBuffer buffer,
 ) =>
     _createSourceCodeChangeGeneric(
+      methodType,
       classEntity,
       name,
       buffer,
@@ -89,11 +100,13 @@ SourceCodeChange createSourceCodeChangeForConstructor(
     );
 
 SourceCodeChange createSourceCodeChangeForOperator(
+  String methodType,
   ClassEntity classEntity,
   String name,
   StringBuffer buffer,
 ) =>
     _createSourceCodeChangeGeneric(
+      methodType,
       classEntity,
       name,
       buffer,

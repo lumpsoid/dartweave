@@ -18,7 +18,12 @@ SourceCodeChange generateForMethod(
     // ... existing parameters logic ...
     ..writeln(') => $fieldName.execute();');
 
-  return createSourceCodeChangeForMethod(classEntity, method.name, buffer);
+  return createSourceCodeChangeForMethod(
+    method.name,
+    classEntity,
+    method.name,
+    buffer,
+  );
 }
 
 String _capitalize(String s) =>
@@ -143,7 +148,8 @@ class GenerateUseCasesFromMethodsUseCase {
     _ExtractionResult extraction,
     _GenerationContext context,
   ) {
-    final changes = [...extraction.methodChanges];
+    final changes =
+        extraction.methodChanges.whereType<SourceCodeChangeOk>().toList();
 
     // 1. Handle Imports
     for (final file in extraction.newFiles) {
@@ -151,7 +157,8 @@ class GenerateUseCasesFromMethodsUseCase {
           ? './${file.fileName}'
           : 'package:${context.packageName}/${context.relativeToLib}/${file.fileName}';
       changes.add(
-        SourceCodeChange(
+        SourceCodeChangeOk(
+          method: 'import',
           startOffset: 0,
           endOffset: 0,
           newContent: "import '$path';\n",
@@ -180,7 +187,7 @@ class GenerateUseCasesFromMethodsUseCase {
     );
   }
 
-  SourceCodeChange _generateMemberChange(
+  SourceCodeChangeOk _generateMemberChange(
     ClassEntity ce,
     List<Field> newFields,
     String src,
@@ -190,13 +197,15 @@ class GenerateUseCasesFromMethodsUseCase {
 
     final fieldsBlock =
         newFields.map((f) => '  final ${f.type} ${f.name};').join('\n');
-    final constructor =
-        constructorGenerator.generate(updatedClass, src)?.newContent ?? '';
+    final constructor = constructorGenerator.generate(updatedClass, src);
+    final newContent =
+        constructor is SourceCodeChangeOk ? constructor.newContent : '';
 
-    return SourceCodeChange(
+    return SourceCodeChangeOk(
+      method: '',
       startOffset: insertion.start,
       endOffset: insertion.end,
-      newContent: '$constructor\n$fieldsBlock',
+      newContent: '$newContent\n$fieldsBlock',
     );
   }
 

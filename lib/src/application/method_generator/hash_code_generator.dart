@@ -3,10 +3,12 @@ import 'package:dartweave/src/domain/create_source_code_change_from_class_entity
 import 'package:dartweave/src/domain/entities/entities.dart';
 
 class HashCodeGenerator implements MethodGenerator {
+  static const MethodType methodType = MethodType.hashCodeMethod;
+
   @override
-  SourceCodeChange? generate(ClassEntity classEntity, String sourceCode) {
+  SourceCodeChange generate(ClassEntity classEntity, String sourceCode) {
     if (classEntity.isZeroOffset) {
-      return null;
+      return ZeroClassOffsetFailure(method: methodType.name);
     }
 
     final allFields = classEntity.allFields();
@@ -19,7 +21,12 @@ class HashCodeGenerator implements MethodGenerator {
         ..writeln('    return Object.hashAll([]);') // or just Object.hash(0);
         ..write('  }');
 
-      return createSourceCodeChangeForGetter(classEntity, 'hashCode', buffer);
+      return createSourceCodeChangeForGetter(
+        methodType.name,
+        classEntity,
+        'hashCode',
+        buffer,
+      );
     } else if (allFields.length == 1) {
       buffer
         ..writeln(
@@ -27,7 +34,12 @@ class HashCodeGenerator implements MethodGenerator {
         )
         ..write('  }');
 
-      return createSourceCodeChangeForGetter(classEntity, 'hashCode', buffer);
+      return createSourceCodeChangeForGetter(
+        methodType.name,
+        classEntity,
+        'hashCode',
+        buffer,
+      );
     } else {
       buffer.write('    return Object.hash(');
       for (var i = 0; i < allFields.length; i++) {
@@ -41,6 +53,11 @@ class HashCodeGenerator implements MethodGenerator {
 
     buffer.write('  }');
 
-    return createSourceCodeChangeForGetter(classEntity, 'hashCode', buffer);
+    return createSourceCodeChangeForGetter(
+      methodType.name,
+      classEntity,
+      'hashCode',
+      buffer,
+    );
   }
 }

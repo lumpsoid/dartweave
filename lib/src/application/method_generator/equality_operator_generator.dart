@@ -4,10 +4,11 @@ import 'package:dartweave/src/domain/entities/entities.dart';
 import 'package:dartweave/src/domain/write_to_buffer.dart';
 
 class EqualityOperatorGenerator implements MethodGenerator {
+  static const MethodType methodType = MethodType.equalityOperator;
   @override
-  SourceCodeChange? generate(ClassEntity classEntity, String sourceCode) {
+  SourceCodeChange generate(ClassEntity classEntity, String sourceCode) {
     if (classEntity.isZeroOffset) {
-      return null;
+      return ZeroClassOffsetFailure(method: methodType.name);
     }
 
     final allFields = classEntity.allFields();
@@ -27,6 +28,11 @@ class EqualityOperatorGenerator implements MethodGenerator {
       );
     }
 
-    return createSourceCodeChangeForOperator(classEntity, '==', buffer);
+    return createSourceCodeChangeForOperator(
+      methodType.name,
+      classEntity,
+      '==',
+      buffer,
+    );
   }
 }

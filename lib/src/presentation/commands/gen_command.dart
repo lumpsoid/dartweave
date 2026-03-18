@@ -101,26 +101,51 @@ class GenCommand extends Command<int> {
         ),
       );
 
-      final result = await generateMethodsUseCase.execute(request);
+      final results = await generateMethodsUseCase.execute(request);
 
-      if (!result.isSuccess) {
-        _logger.err(result.errorMessage);
-        return ExitCode.software.code;
-      }
-
-      if (!result.wasUpdated) {
-        _logger.info('No changes were made to the file');
-        return ExitCode.success.code;
+      switch (results) {
+        case GenerateMethodsOk():
+          for (final result in results.results) {
+            _logger.info('Class ${result.className}');
+            if (result.wasUpdated) {
+              final updatedMethods = result.generatedMethods.join(', ');
+              _logger
+                  .success('Successfully generated methods: $updatedMethods');
+            } else {
+              _logger.info('No changes were made to the file');
+            }
+            if (result.hasErrors) {
+              for (final err in result.errors) {
+                switch (err) {
+                  case NoDefaultGenerationError():
+                    _logger.err(
+                      'No default constructor when generated ${err.methodType}',
+                    );
+                  case GenerationFailure():
+                    _logger.err(err.message);
+                  case ZeroClassOffsetGenerationError():
+                    _logger.err('No ${result.className} class to generate'
+                        ' ${err.methodType}');
+                  case NoFieldsGenerationError():
+                    _logger.err('No fields to generate ${err.methodType}');
+                }
+              }
+            }
+          }
+        case NoClassesFoundFailure():
+          _logger.err('No classes found in the path: $filePath');
+          return ExitCode.software.code;
+        case ClassNotFoundFailure():
+          _logger.err('No ${results.className} class found');
+          return ExitCode.software.code;
+        case GenerationExceptionFailure():
+          _logger.err(results.message);
+          return ExitCode.software.code;
       }
 
       // Write updated content
-      await file.writeAsString(result.updatedSourceCode!);
-
-      _logger.success('Successfully generated methods');
-      for (final entry in result.methodsByClass.entries) {
-        _logger.success(
-          'Class ${entry.key}: ${entry.value.join(", ")}',
-        );
+      if (results.wasUpdated) {
+        await file.writeAsString(results.updatedSourceCode!);
       }
 
       return ExitCode.success.code;

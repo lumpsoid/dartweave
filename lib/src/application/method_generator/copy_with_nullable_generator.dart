@@ -3,24 +3,25 @@ import 'package:dartweave/src/domain/create_source_code_change_from_class_entity
 import 'package:dartweave/src/domain/entities/entities.dart';
 
 class CopyWithNullableGenerator implements MethodGenerator {
+  static const MethodType methodType = MethodType.copyWithNullableMethod;
   @override
-  SourceCodeChange? generate(ClassEntity classEntity, String sourceCode) {
+  SourceCodeChange generate(ClassEntity classEntity, String sourceCode) {
     if (classEntity.isZeroOffset) {
-      return null;
+      return ZeroClassOffsetFailure(method: methodType.name);
+    }
+    // Grab existing default constructor knowledge
+    final existingConstructor =
+        classEntity.constructors.where((c) => c.name == null).firstOrNull;
+
+    if (existingConstructor == null) {
+      return NoDefaultConstructorFailure(method: methodType.name);
     }
 
     final allFields = classEntity.allFields();
 
-    // Grab existing default constructor knowledge
-    final existingConstructor =
-        classEntity.constructors.where((c) => c.name == null).firstOrNull;
-    final isConst = existingConstructor?.isConst ?? false;
-    final prefix = isConst ? 'const ' : '';
-
     // Parameters already written by the user, keyed by public param name.
     final existingParams = {
-      if (existingConstructor != null)
-        for (final p in existingConstructor.parameters) p.name: p,
+      for (final p in existingConstructor.parameters) p.name: p,
     };
 
     final buffer = StringBuffer()
@@ -33,7 +34,7 @@ class CopyWithNullableGenerator implements MethodGenerator {
 
     buffer
       ..writeln('  }) {')
-      ..writeln('    return $prefix${classEntity.name}(');
+      ..writeln('    return ${classEntity.name}(');
 
     for (final field in allFields) {
       final param = existingParams[field.name];
@@ -60,6 +61,7 @@ class CopyWithNullableGenerator implements MethodGenerator {
       ..write('  }');
 
     return createSourceCodeChangeForMethod(
+      methodType.name,
       classEntity,
       'copyWithNullable',
       buffer,
