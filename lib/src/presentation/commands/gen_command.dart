@@ -32,7 +32,13 @@ class GenCommand extends Command<int> {
         'method',
         abbr: 'm',
         help: 'Methods to sync',
-        allowed: ['copyWith', 'copyWithNullable', 'toString', 'hashCode'],
+        allowed: [
+          'copyWith',
+          'copyWithNullable',
+          'toString',
+          'hashCode',
+          'fromJson',
+        ],
       )
       ..addMultiOption(
         'getter',

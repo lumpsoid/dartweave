@@ -7,7 +7,8 @@ enum MethodType {
   toStringMethod('toString'),
   hashCodeMethod('hashCode'),
   equalityOperator('equality'),
-  isEmptyGetter('isEmpty');
+  isEmptyGetter('isEmpty'),
+  fromJsonMethod('fromJson');
 
   const MethodType(this.name);
 
