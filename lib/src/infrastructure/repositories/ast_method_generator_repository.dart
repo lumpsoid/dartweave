@@ -1,3 +1,4 @@
+import 'package:dartweave/src/application/method_generator/copy_with_nullable_generator.dart';
 import 'package:dartweave/src/application/method_generator/method_generator.dart';
 import 'package:dartweave/src/domain/entities/entities.dart';
 import 'package:dartweave/src/domain/repositories/method_generator_repository.dart';
@@ -59,6 +60,8 @@ class AstMethodGeneratorRepository implements MethodGeneratorRepository {
         return DefaultConstructorGenerator();
       case MethodType.copyWithMethod:
         return CopyWithGenerator();
+      case MethodType.copyWithNullableMethod:
+        return CopyWithNullableGenerator();
       case MethodType.toStringMethod:
         return ToStringGenerator();
       case MethodType.hashCodeMethod:

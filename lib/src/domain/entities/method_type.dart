@@ -3,6 +3,7 @@ enum MethodType {
   emptyConstructor('empty'),
   defaultConstructor('new'),
   copyWithMethod('copyWith'),
+  copyWithNullableMethod('copyWithNullable'),
   toStringMethod('toString'),
   hashCodeMethod('hashCode'),
   equalityOperator('equality'),
