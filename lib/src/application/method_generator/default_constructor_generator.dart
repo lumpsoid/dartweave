@@ -11,10 +11,7 @@ class DefaultConstructorGenerator implements MethodGenerator {
       return ZeroClassOffsetFailure(method: methodType.name);
     }
 
-    final allFields = classEntity
-        .allFields()
-        .where((f) => !f.isStatic && !f.isConst)
-        .toList();
+    final allFields = classEntity.allConstructorFields();
 
     final existingConstructor =
         classEntity.constructors.where((c) => c.name == null).firstOrNull;
@@ -23,8 +20,9 @@ class DefaultConstructorGenerator implements MethodGenerator {
     final prefix = isConst ? 'const ' : '';
 
     // Separate existing params by kind.
-    // Positional params are preserved verbatim and emitted before the named block.
-    // Named params are keyed by name so we can match them against fields.
+    // Positional params are preserved verbatim and emitted before the named
+    // block. Named params are keyed by name so we can match them against
+    // fields.
     final existingPositional =
         existingConstructor?.parameters.where((p) => p.isPositional).toList() ??
             [];

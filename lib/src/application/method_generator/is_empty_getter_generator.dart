@@ -10,7 +10,7 @@ class IsEmptyGetterGenerator implements MethodGenerator {
       return ZeroClassOffsetFailure(method: methodType.name);
     }
 
-    final allFields = classEntity.allFields();
+    final allFields = classEntity.allConstructorFields();
     if (allFields.isEmpty) {
       final buffer = StringBuffer()
         // If there are no fields, then by default it's considered empty.

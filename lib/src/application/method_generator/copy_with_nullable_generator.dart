@@ -17,7 +17,7 @@ class CopyWithNullableGenerator implements MethodGenerator {
       return NoDefaultConstructorFailure(method: methodType.name);
     }
 
-    final allFields = classEntity.allFields();
+    final allFields = classEntity.allConstructorFields();
 
     // Parameters already written by the user, keyed by public param name.
     final existingParams = {

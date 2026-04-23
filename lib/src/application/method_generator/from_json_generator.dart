@@ -11,10 +11,7 @@ class FromJsonGenerator implements MethodGenerator {
       return ZeroClassOffsetFailure(method: methodType.name);
     }
 
-    final allFields = classEntity
-        .allFields()
-        .where((f) => !f.isStatic && !f.isConst)
-        .toList();
+    final allFields = classEntity.allConstructorFields();
 
     final buffer = StringBuffer()
       ..writeln('static ${classEntity.name}? fromJson(dynamic jsonRaw) {')

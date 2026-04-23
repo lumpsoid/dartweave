@@ -60,6 +60,29 @@ class ClassEntity {
     return all;
   }
 
+  List<Field> allConstructorFields() {
+    final all = [...fields].where((e) => !e.isStatic).toList();
+    if (superclassEntity != null) {
+      all.addAll(
+        superclassEntity!.allFields().where((e) => !e.isStatic).map(
+              (f) => Field(
+                name: f.name,
+                type: f.type,
+                nullable: f.nullable,
+                isSuper: true,
+                isConst: f.isConst,
+                isFinal: f.isFinal,
+                isLate: f.isLate,
+                isStatic: f.isStatic,
+                offset: f.offset,
+                end: f.end,
+              ),
+            ),
+      );
+    }
+    return all;
+  }
+
   @override
   String toString() {
     return 'ClassEntity('

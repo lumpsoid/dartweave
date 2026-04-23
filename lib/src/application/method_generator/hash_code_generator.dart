@@ -11,7 +11,7 @@ class HashCodeGenerator implements MethodGenerator {
       return ZeroClassOffsetFailure(method: methodType.name);
     }
 
-    final allFields = classEntity.allFields();
+    final allFields = classEntity.allConstructorFields();
 
     final buffer = StringBuffer()..writeln('@override\n  int get hashCode {');
     if (allFields.isEmpty) {

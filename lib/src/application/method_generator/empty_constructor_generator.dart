@@ -10,7 +10,7 @@ class EmptyConstructorGenerator implements MethodGenerator {
     if (classEntity.isZeroOffset) {
       return ZeroClassOffsetFailure(method: methodType.name);
     }
-    final allFields = classEntity.allFields();
+    final allFields = classEntity.allConstructorFields();
     if (allFields.isEmpty) {
       return NoFieldsFailure(method: methodType.name);
     }
@@ -23,7 +23,9 @@ class EmptyConstructorGenerator implements MethodGenerator {
     final existingDefaults = existingEmptyCtor != null
         ? _parseInitializerBody(
             sourceCode.substring(
-                existingEmptyCtor.offset, existingEmptyCtor.end),
+              existingEmptyCtor.offset,
+              existingEmptyCtor.end,
+            ),
           )
         : <String, String>{};
 
@@ -37,8 +39,8 @@ class EmptyConstructorGenerator implements MethodGenerator {
     for (var i = 0; i < allFields.length; i++) {
       final field = allFields[i];
 
-      // Use existing value if it was in the old constructor AND field still exists,
-      // otherwise derive a fresh default from the field type.
+      // Use existing value if it was in the old constructor AND field still
+      // exists, otherwise derive a fresh default from the field type.
       final value = (existingDefaults.containsKey(field.name) &&
               currentFieldNames.contains(field.name))
           ? existingDefaults[field.name]!
@@ -99,7 +101,8 @@ class EmptyConstructorGenerator implements MethodGenerator {
     return result;
   }
 
-  /// Splits [input] on commas that are not inside parentheses, brackets, or quotes.
+  /// Splits [input] on commas that are not inside parentheses, brackets, or
+  /// quotes.
   List<String> _splitOnTopLevelCommas(String input) {
     final parts = <String>[];
     var depth = 0;

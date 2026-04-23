@@ -10,11 +10,11 @@ class ToStringGenerator implements MethodGenerator {
       return ZeroClassOffsetFailure(method: methodType.name);
     }
 
-    final allFields = classEntity.allFields();
+    final allFields = classEntity.allConstructorFields();
 
     final buffer = StringBuffer()
-      ..writeln('@override\n  String toString() {')
-      ..writeln("    return '${classEntity.name}('");
+      ..writeln('@override\n  String toString() =>')
+      ..writeln("    '${classEntity.name}('");
     for (var i = 0; i < allFields.length; i++) {
       final field = allFields[i];
       final endString = i < allFields.length - 1 ? ',' : '';
@@ -22,11 +22,8 @@ class ToStringGenerator implements MethodGenerator {
         "        ' ${field.name}: \$${field.name}$endString'",
       ); // Add comma for all but the last field
     }
-    buffer
-      ..writeln(
-        "        ')';",
-      ) // Ensure closing parenthesis is outside the last field's quote
-      ..write('  }');
+    // Ensure closing parenthesis is outside the last field's quote
+    buffer.writeln("        ')';");
 
     return createSourceCodeChangeForMethod(
       methodType.name,

@@ -11,7 +11,7 @@ class CopyWithGenerator implements MethodGenerator {
       return ZeroClassOffsetFailure(method: methodType.name);
     }
 
-    final allFields = classEntity.allFields();
+    final allFields = classEntity.allConstructorFields();
 
     final buffer = StringBuffer()..writeln('${classEntity.name} copyWith({');
     for (final field in allFields) {
