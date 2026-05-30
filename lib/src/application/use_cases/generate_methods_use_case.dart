@@ -29,26 +29,32 @@ class GenerateMethodsUseCase {
         return ClassNotFoundFailure(className: request.className);
       }
 
+      // Process classes bottom-to-top: new content is always inserted at each
+      // class's own closing brace (classEntity.end - 1), so processing a class
+      // lower in the file never shifts the offsets of classes above it.
+      final orderedClasses = [...targetClasses]
+        ..sort((a, b) => b.offset.compareTo(a.offset));
+
       final updatedClasses = <GenerationResult>[];
-      var updatedSourceCode = request.sourceCode;
+      var currentSource = request.sourceCode;
       var wasUpdated = false;
 
-      for (final classEntity in targetClasses) {
+      for (final classEntity in orderedClasses) {
         final generationResult = generatorRepository.generateMethods(
           classEntity,
           request.methodTypes,
-          updatedSourceCode,
+          currentSource,
         );
 
         if (generationResult.wasUpdated) {
           wasUpdated = true;
-          updatedSourceCode = generationResult.updatedSourceCode;
+          currentSource = generationResult.updatedSourceCode;
         }
         updatedClasses.add(generationResult);
       }
 
       return GenerateMethodsOk(
-        updatedSourceCode: updatedSourceCode,
+        updatedSourceCode: currentSource,
         results: updatedClasses,
         wasUpdated: wasUpdated,
       );

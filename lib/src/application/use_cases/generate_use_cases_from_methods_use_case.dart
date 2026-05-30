@@ -167,18 +167,17 @@ class GenerateUseCasesFromMethodsUseCase {
     }
 
     // 2. Handle Fields and Constructor
-    changes
-      ..add(
-        _generateMemberChange(
-          classEntity,
-          extraction.newUseCaseFields,
-          source,
-        ),
-      )
+    changes.add(
+      _generateMemberChange(
+        classEntity,
+        extraction.newUseCaseFields,
+        source,
+      ),
+    );
 
-      // Sort descending to apply changes without breaking offsets
+    final orderedChanges = changes.reversed.toList()
       ..sort((a, b) => b.startOffset.compareTo(a.startOffset));
-    return changes.fold(
+    return orderedChanges.fold(
       source,
       (src, chg) =>
           src.substring(0, chg.startOffset) +

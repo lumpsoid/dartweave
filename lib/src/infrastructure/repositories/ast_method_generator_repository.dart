@@ -13,28 +13,19 @@ class AstMethodGeneratorRepository implements MethodGeneratorRepository {
     String sourceCode,
   ) {
     final generatedMethods = <String>[];
-    final changes = <SourceCodeChange>[];
+    final rawChanges = <SourceCodeChange>[];
 
     for (final methodType in methodTypes) {
       final generator = _getGenerator(methodType, classEntity);
       final change = generator.generate(classEntity, sourceCode);
 
-      changes.add(change);
+      rawChanges.add(change);
       if (change is SourceCodeChangeOk) {
         generatedMethods.add(methodType.name);
       }
     }
 
-    if (changes.isEmpty) {
-      return GenerationResult(
-        className: classEntity.name,
-        updatedSourceCode: sourceCode,
-        generatedMethods: generatedMethods,
-      );
-    }
-
-    // Apply changes from bottom to top
-    final result = changes.fold(
+    final result = rawChanges.fold(
       (success: <SourceCodeChangeOk>[], errors: <GenerationError>[]),
       (acc, change) => switch (change) {
         SourceCodeChangeOk() => (
@@ -71,10 +62,15 @@ class AstMethodGeneratorRepository implements MethodGeneratorRepository {
           ),
       },
     );
-    result.success.sort((a, b) => b.startOffset.compareTo(a.startOffset));
+
+    // Reverse before stable sort so same-offset changes (multiple new methods
+    // all appended at classEntity.end - 1) are applied in reverse-generation
+    // order, which makes them appear in generation order in the final output.
+    final orderedChanges = result.success.reversed.toList()
+      ..sort((a, b) => b.startOffset.compareTo(a.startOffset));
     var updatedSourceCode = sourceCode;
 
-    for (final change in result.success) {
+    for (final change in orderedChanges) {
       updatedSourceCode = updatedSourceCode.substring(0, change.startOffset) +
           change.newContent +
           updatedSourceCode.substring(change.endOffset);
