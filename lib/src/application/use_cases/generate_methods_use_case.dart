@@ -12,6 +12,11 @@ class GenerateMethodsUseCase {
   final ClassParserRepository parserRepository;
   final MethodGeneratorRepository generatorRepository;
 
+  static const Set<MethodType> _constructorMethodTypes = {
+    MethodType.emptyConstructor,
+    MethodType.defaultConstructor,
+  };
+
   /// Generate methods for a class
   Future<GenerateMethodsResult> execute(GenerationRequest request) async {
     try {
@@ -29,33 +34,69 @@ class GenerateMethodsUseCase {
         return ClassNotFoundFailure(className: request.className);
       }
 
-      // Process classes bottom-to-top: new content is always inserted at each
-      // class's own closing brace (classEntity.end - 1), so processing a class
-      // lower in the file never shifts the offsets of classes above it.
-      final orderedClasses = [...targetClasses]
-        ..sort((a, b) => b.offset.compareTo(a.offset));
+      final constructorTypes = request.methodTypes
+          .where((t) => _constructorMethodTypes.contains(t))
+          .toList();
+      final otherTypes = request.methodTypes
+          .where((t) => !_constructorMethodTypes.contains(t))
+          .toList();
 
-      final updatedClasses = <GenerationResult>[];
+      // resultsByClass preserves insertion order (bottom-to-top by offset) and
+      // merges results when a class appears in both passes, so each class
+      // prints exactly once in the log.
+      final resultsByClass = <String, GenerationResult>{};
       var currentSource = request.sourceCode;
       var wasUpdated = false;
 
-      for (final classEntity in orderedClasses) {
-        final generationResult = generatorRepository.generateMethods(
-          classEntity,
-          request.methodTypes,
-          currentSource,
-        );
-
-        if (generationResult.wasUpdated) {
-          wasUpdated = true;
-          currentSource = generationResult.updatedSourceCode;
+      // Process classes bottom-to-top: new content is always inserted at each
+      // class's own closing brace (classEntity.end - 1), so processing a class
+      // lower in the file never shifts the offsets of classes above it.
+      void runPass(List<ClassEntity> passClasses, List<MethodType> types) {
+        final ordered = [...passClasses]
+          ..sort((a, b) => b.offset.compareTo(a.offset));
+        for (final classEntity in ordered) {
+          final result = generatorRepository.generateMethods(
+            classEntity,
+            types,
+            currentSource,
+          );
+          if (result.wasUpdated) {
+            wasUpdated = true;
+            currentSource = result.updatedSourceCode;
+          }
+          final existing = resultsByClass[classEntity.name];
+          resultsByClass[classEntity.name] = existing == null
+              ? result
+              : GenerationResult(
+                  className: existing.className,
+                  updatedSourceCode: result.updatedSourceCode,
+                  generatedMethods: [
+                    ...existing.generatedMethods,
+                    ...result.generatedMethods,
+                  ],
+                  errors: [...existing.errors, ...result.errors],
+                );
         }
-        updatedClasses.add(generationResult);
+      }
+
+      if (constructorTypes.isNotEmpty && otherTypes.isNotEmpty) {
+        // First pass: constructors only, so subsequent generators see them.
+        runPass(targetClasses, constructorTypes);
+
+        // Re-parse to expose the new constructor to subsequent generators.
+        final reparsedClasses = parserRepository.parseClasses(
+          currentSource,
+          request.filePath,
+        );
+        // Second pass: remaining methods with updated class entities.
+        runPass(_filterTargetClasses(reparsedClasses, request), otherTypes);
+      } else {
+        runPass(targetClasses, request.methodTypes);
       }
 
       return GenerateMethodsOk(
         updatedSourceCode: currentSource,
-        results: updatedClasses,
+        results: resultsByClass.values.toList(),
         wasUpdated: wasUpdated,
       );
     } on Object catch (e) {

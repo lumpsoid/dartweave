@@ -71,17 +71,20 @@ class ChatPartnerTest {
           // ChatPartnerTest body must not appear inside ChatPartner's block.
           // Parse the result — if it's corrupted the analyzer throws.
           expect(
-            () => AstClassParserRepository().parseClasses(output, 'chat_partner.dart'),
+            () => AstClassParserRepository()
+                .parseClasses(output, 'chat_partner.dart'),
             returnsNormally,
             reason: 'generated output is not valid Dart',
           );
 
-          final classes = AstClassParserRepository().parseClasses(output, 'chat_partner.dart');
+          final classes = AstClassParserRepository()
+              .parseClasses(output, 'chat_partner.dart');
           expect(classes, hasLength(2));
 
           // Both classes must have their own constructors in the right place
           final partner = classes.firstWhere((c) => c.name == 'ChatPartner');
-          final partnerTest = classes.firstWhere((c) => c.name == 'ChatPartnerTest');
+          final partnerTest =
+              classes.firstWhere((c) => c.name == 'ChatPartnerTest');
           expect(partner.constructors, isNotEmpty);
           expect(partnerTest.constructors, isNotEmpty);
         },

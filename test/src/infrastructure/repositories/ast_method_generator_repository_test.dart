@@ -90,9 +90,12 @@ class Bar {
           expect(result.errors, isEmpty);
 
           final output = result.updatedSourceCode;
-          expect(output.contains('OLD'), isFalse, reason: 'old toString must be replaced');
-          expect(output.contains('copyWith('), isTrue, reason: 'copyWith must be present');
-          expect(output.contains('String toString()'), isTrue, reason: 'toString must be present');
+          expect(output.contains('OLD'), isFalse,
+              reason: 'old toString must be replaced');
+          expect(output.contains('copyWith('), isTrue,
+              reason: 'copyWith must be present');
+          expect(output.contains('String toString()'), isTrue,
+              reason: 'toString must be present');
         },
       );
     });
